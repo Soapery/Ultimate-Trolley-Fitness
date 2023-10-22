@@ -66,4 +66,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation ("com.google.android.gms:play-services-fitness:21.1.0") //t for Google Fi API
+    implementation ("com.mikhaellopez:circularprogressbar:3.1.0")
 }
