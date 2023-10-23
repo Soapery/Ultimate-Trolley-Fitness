@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 //        }
     }
 
+    // Asks user for sensor data permission
     private fun requestPermission() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
             ActivityCompat.requestPermissions(this,
@@ -73,6 +74,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
+    // Checks if the user granted sensor data permission
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(this,
@@ -135,6 +137,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
         val progress_circular = findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(R.id.progress_circular)
+
+        // If the target device has an Accelerometer
         if(event!!.sensor.type == Sensor.TYPE_ACCELEROMETER) {
             val xAccel: Float = event.values[0]
             val yAccel: Float = event.values[1]
@@ -154,6 +158,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             progress_circular.apply{
                 setProgressWithAnimation(step.toFloat())
             }
+        // If the target device has a standard step counter
         } else {
             if(running){
                 totalSteps = event.values[0]
@@ -183,12 +188,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 
     private fun saveData() {
-
         val sharedPreferences = getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putFloat("key1", previousTotalSteps)
         editor.apply()
     }
+
     private fun loadData(){
         val sharedPreferences = getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
         val savedNumber = sharedPreferences.getFloat("key1", 0f)
@@ -199,8 +204,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
 
     }
-
-
 }
 
 //<TextView
