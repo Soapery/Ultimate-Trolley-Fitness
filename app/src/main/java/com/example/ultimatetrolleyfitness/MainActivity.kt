@@ -13,6 +13,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,7 @@ import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
 import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity(), SensorEventListener {
-
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var magnitudePreviousStep = 0.0
     private val ACTIVITY_RECOGNITION_REQUEST_CODE: Int = 100
     private var sensorManager: SensorManager? = null
@@ -36,8 +38,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private var totalSteps = 0f
     private var previousTotalSteps = 0f
 
-
-
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,9 +45,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
         loadData()
         resetSteps()
+        setupPermissionLauncher()
 
         if(isPermissionGranted()){
-            requestPermission()
+            requestPermissionLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
         }
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -81,22 +82,35 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED
     }
 
-
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
-            ACTIVITY_RECOGNITION_REQUEST_CODE -> {
-                if((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)){
+    // Sets up the permission modal
+    private fun setupPermissionLauncher() {
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                // Empty for future handling of each result
+                if (isGranted) {
                     // Permission granted
+                } else {
+                    // Permission denied
                 }
             }
-        }
     }
+
+//    Previous implementation, outdated
+//    @Deprecated("Deprecated in Java")
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<out String>,
+//        grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//        when(requestCode){
+//            ACTIVITY_RECOGNITION_REQUEST_CODE -> {
+//                if((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)){
+//                    // Permission granted
+//                }
+//            }
+//        }
+//    }
 
     override fun onResume(){
         super.onResume()
@@ -122,11 +136,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 Toast.makeText(this, "No compatible sensor detected on this device", Toast.LENGTH_SHORT).show()
             }
         }
-//        if(stepSensor == null) {
-//            Toast.makeText(this, "No sensor detected on this device", Toast.LENGTH_SHORT).show()
-//        } else {
-//            sensorManager?.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-//        }
     }
 
     override fun onPause() {
@@ -172,7 +181,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
-    fun resetSteps(){
+    private fun resetSteps(){
         val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
         tv_stepsTaken.setOnClickListener {
         Toast.makeText(this, "Long tap to reset steps", Toast.LENGTH_SHORT).show()
@@ -197,7 +206,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun loadData(){
         val sharedPreferences = getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
         val savedNumber = sharedPreferences.getFloat("key1", 0f)
-//        Log.d("MainActivity", "$savedNumber")
         previousTotalSteps = savedNumber
     }
 
