@@ -66,15 +66,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 //        }
     }
 
-    // Asks user for sensor data permission
-    private fun requestPermission() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-            ActivityCompat.requestPermissions(this,
-                arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION),
-                ACTIVITY_RECOGNITION_REQUEST_CODE)
-        }
-    }
-
     // Checks if the user granted sensor data permission
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted(): Boolean {
