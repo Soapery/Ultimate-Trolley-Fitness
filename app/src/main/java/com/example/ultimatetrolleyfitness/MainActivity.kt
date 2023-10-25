@@ -53,17 +53,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-//        setContent {
-//            UltimateTrolleyFitnessTheme {
-//                // A surface container using the 'background' color from the theme
-//                Surface(
-//                    modifier = Modifier.fillMaxSize(),
-//                    color = MaterialTheme.colorScheme.background
-//                ) {
-//                    Greeting("Android")
-//                }
-//            }
-//        }
+
     }
 
     // Asks user for sensor data permission
@@ -95,22 +85,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             }
     }
 
-//    Previous implementation, outdated
-//    @Deprecated("Deprecated in Java")
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        when(requestCode){
-//            ACTIVITY_RECOGNITION_REQUEST_CODE -> {
-//                if((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)){
-//                    // Permission granted
-//                }
-//            }
-//        }
-//    }
 
     override fun onResume(){
         super.onResume()
@@ -214,24 +188,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 }
 
-//<TextView
-//    android:layout_width="wrap_content"
-//    android:layout_height="wrap_content"
-//    android:text="Step Counter"
-//    android:layout_margin="20dp"
-//    android:textSize= "20sp"
-//    android:textFontWeight="800"
-//    android:textColor= "#3a9bdc"
-//
-///>
-//
-//<ProgressBar
-//    android:layout_width= "300dp"
-//    android:layout_height= "300dp"
-//    android:layout_centerVertical= "true"
-//    android:layout_centerHorizontal= "true"
-//
-///>
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
