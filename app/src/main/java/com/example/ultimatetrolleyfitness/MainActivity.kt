@@ -31,7 +31,6 @@ import kotlin.math.sqrt
 class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var magnitudePreviousStep = 0.0
-    private val ACTIVITY_RECOGNITION_REQUEST_CODE: Int = 100
     private var sensorManager: SensorManager? = null
 
     private var running = false
@@ -59,15 +58,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
 
-    }
-
-    // Asks user for sensor data permission
-    private fun requestPermission() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-            ActivityCompat.requestPermissions(this,
-                arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION),
-                ACTIVITY_RECOGNITION_REQUEST_CODE)
-        }
     }
 
     // Checks if the user granted sensor data permission
@@ -103,7 +93,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
         // Attempt to obtain references to specific sensor types: step counter, step detector, and accelerometer.
         val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         // Determine the sensor available on the device and register a listener accordingly.
