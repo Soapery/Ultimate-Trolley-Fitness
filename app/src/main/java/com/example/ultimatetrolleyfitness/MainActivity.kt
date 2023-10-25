@@ -31,7 +31,6 @@ import kotlin.math.sqrt
 class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var magnitudePreviousStep = 0.0
-    private val ACTIVITY_RECOGNITION_REQUEST_CODE: Int = 100
     private var sensorManager: SensorManager? = null
 
     private var running = false
@@ -84,7 +83,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         when{
