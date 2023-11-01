@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Update your UI based on the step count
+    // Update UI based on the step count
     private fun updateUI(stepCount: Int) {
         val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
         val progress_circular = findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(R.id.progress_circular)
