@@ -2,6 +2,8 @@ package com.example.ultimatetrolleyfitness
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
@@ -17,10 +19,29 @@ import com.google.firebase.auth.auth
 class EmailPasswordActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
+    private lateinit var editTextEmail: EditText
+    private lateinit var editTextPassword: EditText
+    private lateinit var buttonLogin: Button
+
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        auth = Firebase.auth
+        auth = FirebaseAuth.getInstance()
+
+        editTextEmail = findViewById(R.id.editTextEmail)
+        editTextPassword = findViewById(R.id.editTextPassword)
+        buttonLogin = findViewById(R.id.buttonLogin)
+
+        // Should handle if user doesn't have an account
+        buttonLogin.setOnClickListener {
+            val email = editTextEmail.text.toString()
+            val password = editTextPassword.text.toString()
+            // Not logging?
+            Log.d("I", email);
+            // Call the signIn method from EmailPasswordActivity
+            signIn(email, password)
+        }
     }
 
     public override fun onStart() {

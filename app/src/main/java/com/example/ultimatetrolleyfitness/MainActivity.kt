@@ -3,6 +3,8 @@ package com.example.ultimatetrolleyfitness
 import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
@@ -11,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     private lateinit var stepTrackerPermissionManager: StepCounterHelper
@@ -18,13 +21,17 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        setContentView(R.layout.activity_email_password)
+
+        // Commented out below for testing login form.
+        //setContentView(R.layout.activity_main)
 
         // Initialize StepTrackerPermissionManager
-        stepTrackerPermissionManager = StepCounterHelper(this) { stepCount ->
-            // Update UI or perform actions based on step count
-            updateUI(stepCount)
-        }
+//        stepTrackerPermissionManager = StepCounterHelper(this) { stepCount ->
+//            // Update UI or perform actions based on step count
+//            updateUI(stepCount)
+//        }
     }
 
     // Update UI based on the step count
