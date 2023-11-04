@@ -111,7 +111,6 @@ class EmailPasswordActivity : ComponentActivity() {
                         "Account creation failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-                    updateUI(null)
                 }
             }
     }
@@ -130,7 +129,6 @@ class EmailPasswordActivity : ComponentActivity() {
                         "Login failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-                    updateUI(null)
                 }
             }
     }
