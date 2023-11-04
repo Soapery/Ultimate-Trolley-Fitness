@@ -22,16 +22,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_email_password)
-
         // Commented out below for testing login form.
-        //setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
         // Initialize StepTrackerPermissionManager
-//        stepTrackerPermissionManager = StepCounterHelper(this) { stepCount ->
-//            // Update UI or perform actions based on step count
-//            updateUI(stepCount)
-//        }
+        stepTrackerPermissionManager = StepCounterHelper(this) { stepCount ->
+            // Update UI or perform actions based on step count
+            updateUI(stepCount)
+        }
     }
 
     // Update UI based on the step count
