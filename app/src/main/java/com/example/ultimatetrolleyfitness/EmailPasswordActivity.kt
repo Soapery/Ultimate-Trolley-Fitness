@@ -5,26 +5,38 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -108,6 +120,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         "Email Address",
                         KeyboardType.Email,
                         VisualTransformation.None,
+                        Icons.Rounded.Email,
                         viewModel
                     )
                     InputField(
@@ -115,6 +128,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         "Password",
                         KeyboardType.Password,
                         PasswordVisualTransformation(),
+                        Icons.Rounded.Lock,
                         viewModel
                     )
 
@@ -124,6 +138,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                             "Confirm Password",
                             KeyboardType.Password,
                             PasswordVisualTransformation(),
+                            Icons.Rounded.Lock,
                             viewModel
                         )
                     }
@@ -153,10 +168,8 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         }
                     }
                 }
-
             }
         }
-
     }
 }
 
@@ -167,6 +180,7 @@ fun InputField(
     label: String,
     keyboardType: KeyboardType,
     visualTransformation: VisualTransformation,
+    icon: ImageVector,
     viewModel: EmailPasswordViewModel
 ) {
     OutlinedTextField(
@@ -186,6 +200,34 @@ fun InputField(
             keyboardType = keyboardType
         ),
         textStyle = TextStyle.Default.copy(fontSize = 16.sp),
-        visualTransformation = visualTransformation
+        visualTransformation = visualTransformation,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            containerColor = Color.White
+        ),
+        leadingIcon = {
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    icon,
+                    "$label icon",
+                    modifier = Modifier
+                        .padding(start = 10.dp, end = 10.dp)
+                        .size(18.dp)
+                )
+
+                Canvas(
+                    modifier = Modifier.height(24.dp)
+                ) {
+                    drawLine(
+                        color = Color.LightGray,
+                        start = Offset(0f, 0f),
+                        end = Offset(0f, size.height),
+                        strokeWidth = 2.0F
+                    )
+                }
+            }
+        }
     )
 }
