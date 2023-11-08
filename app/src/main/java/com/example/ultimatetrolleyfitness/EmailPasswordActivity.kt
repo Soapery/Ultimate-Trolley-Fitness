@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -16,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,7 +66,8 @@ class EmailPasswordActivity : ComponentActivity() {
 fun LoginScreen(viewModel: EmailPasswordViewModel) {
     Column(
         modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val isSignInState by viewModel.isSignInState.observeAsState(true)
         val email: String by viewModel.email.observeAsState("")
@@ -77,22 +81,27 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
             ConfirmPasswordField(confirmPassword, viewModel)
         }
 
-        Button(
-            onClick = {
-                if (isSignInState) {
-                    viewModel.signIn(email, password)
-                } else {
-                    viewModel.createAccount(email, password, confirmPassword)
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            Button(
+                onClick = {
+                    if (isSignInState) {
+                        viewModel.signIn(email, password)
+                    } else {
+                        viewModel.createAccount(email, password, confirmPassword)
+                    }
                 }
+            ) {
+                Text(text = if (isSignInState) "Submit" else "Register")
             }
-        ) {
-            Text(text = if (isSignInState) "Login" else "Create Account")
-        }
 
-        Button(
-            onClick = { viewModel.toggleState() }
-        ) {
-            Text(text = if (isSignInState) "Don't have an account? Create one!" else "Have an account? Login")
+            Button(
+                onClick = { viewModel.toggleState() }
+            ) {
+                Text(text = if (isSignInState) "Create Account" else "Login")
+            }
         }
     }
 }
