@@ -166,7 +166,7 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
 
     }
 
-    fun isValidEmail(target: CharSequence?): Boolean {
+    private fun isValidEmail(target: CharSequence?): Boolean {
         return if (TextUtils.isEmpty(target)) {
             false
         } else {

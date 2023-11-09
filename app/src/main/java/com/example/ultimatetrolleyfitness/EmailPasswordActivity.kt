@@ -5,26 +5,45 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -65,42 +84,90 @@ class EmailPasswordActivity : ComponentActivity() {
 @Composable
 fun LoginScreen(viewModel: EmailPasswordViewModel) {
     Column(
-        modifier = Modifier.padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val isSignInState by viewModel.isSignInState.observeAsState(true)
-        val email: String by viewModel.email.observeAsState("")
-        val password: String by viewModel.password.observeAsState("")
-        val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
+        ConstraintLayout {
+            val (image, loginForm) = createRefs()
 
-        EmailField(email, viewModel)
-        PasswordField(password, viewModel)
+            val isSignInState by viewModel.isSignInState.observeAsState(true)
+            val email: String by viewModel.email.observeAsState("")
+            val password: String by viewModel.password.observeAsState("")
+            val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
 
-        if (!isSignInState) {
-            ConfirmPasswordField(confirmPassword, viewModel)
-        }
 
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
-        ) {
-            Button(
-                onClick = {
-                    if (isSignInState) {
-                        viewModel.signIn(email, password)
-                    } else {
-                        viewModel.createAccount(email, password, confirmPassword)
+            Card(
+                shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+                colors = CardDefaults.cardColors(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 100.dp)
+                    .constrainAs(loginForm) {
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    },
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(30.dp)
+                ) {
+                    InputField(
+                        email,
+                        "Email Address",
+                        KeyboardType.Email,
+                        VisualTransformation.None,
+                        Icons.Rounded.Email,
+                        viewModel
+                    )
+                    InputField(
+                        password,
+                        "Password",
+                        KeyboardType.Password,
+                        PasswordVisualTransformation(),
+                        Icons.Rounded.Lock,
+                        viewModel
+                    )
+
+                    if (!isSignInState) {
+                        InputField(
+                            password,
+                            "Confirm Password",
+                            KeyboardType.Password,
+                            PasswordVisualTransformation(),
+                            Icons.Rounded.Lock,
+                            viewModel
+                        )
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                if (isSignInState) {
+                                    viewModel.signIn(email, password)
+                                } else {
+                                    viewModel.createAccount(email, password, confirmPassword)
+                                }
+                            }
+                        ) {
+                            Text(text = if (isSignInState) "Submit" else "Register")
+                        }
+
+                        OutlinedButton(
+                            onClick = { viewModel.toggleState() }
+                        ) {
+                            Text(text = if (isSignInState) "Create Account" else "Login")
+                        }
                     }
                 }
-            ) {
-                Text(text = if (isSignInState) "Submit" else "Register")
-            }
-
-            Button(
-                onClick = { viewModel.toggleState() }
-            ) {
-                Text(text = if (isSignInState) "Create Account" else "Login")
             }
         }
     }
@@ -108,47 +175,59 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun EmailField(email: String, viewModel: EmailPasswordViewModel) {
+fun InputField(
+    value: String,
+    label: String,
+    keyboardType: KeyboardType,
+    visualTransformation: VisualTransformation,
+    icon: ImageVector,
+    viewModel: EmailPasswordViewModel
+) {
     OutlinedTextField(
-        value = email,
-        onValueChange = { viewModel.onEmailChanged(it) },
+        value = value,
+        onValueChange = {
+            if (label.contains("Email")) {
+                viewModel.onEmailChanged(it)
+            } else if (label.contains("Confirm")) {
+                viewModel.onConfirmPasswordChanged(it)
+            } else {
+                viewModel.onPasswordChanged(it)
+            }
+        },
         singleLine = true,
-        label = { Text("Email Address") },
+        label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Email
-        ),
-        textStyle = TextStyle.Default.copy(fontSize = 16.sp)
-    )
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-fun PasswordField(password: String, viewModel: EmailPasswordViewModel) {
-    OutlinedTextField(
-        value = password,
-        onValueChange = { viewModel.onPasswordChanged(it) },
-        label = { Text("Password") },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Password
-        ),
-        textStyle = TextStyle.Default.copy(fontSize = 16.sp),
-        visualTransformation = PasswordVisualTransformation()
-    )
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-fun ConfirmPasswordField(confirmPassword: String, viewModel: EmailPasswordViewModel) {
-    OutlinedTextField(
-        value = confirmPassword,
-        onValueChange = { viewModel.onConfirmPasswordChanged(it) },
-        singleLine = true,
-        label = { Text("Confirm Password") },
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Password
+            keyboardType = keyboardType
         ),
         textStyle = TextStyle.Default.copy(fontSize = 16.sp),
-        visualTransformation = PasswordVisualTransformation()
+        visualTransformation = visualTransformation,
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            containerColor = Color.White
+        ),
+        leadingIcon = {
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    icon,
+                    "$label icon",
+                    modifier = Modifier
+                        .padding(start = 10.dp, end = 10.dp)
+                        .size(18.dp)
+                )
+
+                Canvas(
+                    modifier = Modifier.height(24.dp)
+                ) {
+                    drawLine(
+                        color = Color.LightGray,
+                        start = Offset(0f, 0f),
+                        end = Offset(0f, size.height),
+                        strokeWidth = 2.0F
+                    )
+                }
+            }
+        }
     )
 }
