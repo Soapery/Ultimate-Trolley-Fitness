@@ -103,10 +103,11 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
             val password: String by viewModel.password.observeAsState("")
             val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
 
+            // Banner
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .padding(top = 250.dp)
+                    .padding(top = 350.dp)
                     .constrainAs(image) {
                         top.linkTo(loginForm.top)
                         bottom.linkTo(loginForm.top)
@@ -120,7 +121,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                 colors = CardDefaults.cardColors(),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 300.dp)
+                    .padding(top = 350.dp)
                     .constrainAs(loginForm) {
                         bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
