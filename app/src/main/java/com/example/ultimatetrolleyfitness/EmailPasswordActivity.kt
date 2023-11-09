@@ -6,7 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,11 +39,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -87,7 +93,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ConstraintLayout {
             val (image, loginForm) = createRefs()
@@ -97,12 +103,24 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
             val password: String by viewModel.password.observeAsState("")
             val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
 
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(top = 250.dp)
+                    .constrainAs(image) {
+                        top.linkTo(loginForm.top)
+                        bottom.linkTo(loginForm.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }) {
+                WelcomeSplash()
+            }
             Card(
                 shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
                 colors = CardDefaults.cardColors(),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 100.dp)
+                    .padding(top = 300.dp)
                     .constrainAs(loginForm) {
                         bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
@@ -238,4 +256,27 @@ fun InputField(
             }
         }
     )
+}
+
+@Composable
+fun WelcomeSplash() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            bitmap = ImageBitmap.imageResource(id = R.drawable.ultimatetrolleyfitnesslogo),
+            contentDescription = "Ultimate Trolley Fitness Logo"
+        )
+        Text(
+            text = "Ultimate Trolley",
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Fitness",
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
