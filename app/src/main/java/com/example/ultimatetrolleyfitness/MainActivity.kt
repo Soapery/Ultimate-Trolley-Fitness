@@ -36,19 +36,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Commented out below for testing login form.
-        setContentView(R.layout.activity_main)
+        // setContentView(R.layout.activity_main)
 
         setContent {
-            // Set up your navigation controller
             val navController = rememberNavController()
 
-            // Set up your navigation host with destinations
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") {
-                    // Your main content goes here
                     ScaffoldWithBottomNav(navController)
                 }
-                // Add more composable functions for other destinations as needed
             }
         }
     }
