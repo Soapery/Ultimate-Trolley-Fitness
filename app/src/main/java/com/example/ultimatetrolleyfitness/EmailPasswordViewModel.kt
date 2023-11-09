@@ -25,7 +25,10 @@ class EmailPasswordViewModelFactory(
 }
 
 
-class EmailPasswordViewModel(private val activity: EmailPasswordActivity, private val application: Application) : ViewModel() {
+class EmailPasswordViewModel(
+    private val activity: EmailPasswordActivity,
+    private val application: Application
+) : ViewModel() {
     lateinit var auth: FirebaseAuth
 
     private val _isSignInState = MutableLiveData(true) // Default value: sign-in state
@@ -64,7 +67,8 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
             && doesPasswordMatch
             && !isEmpty(email)
             && !isEmpty(password)
-            && !isEmpty(confirmPassword)) {
+            && !isEmpty(confirmPassword)
+        ) {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity) { task ->
                     if (task.isSuccessful) {
@@ -81,7 +85,7 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
                     }
                 }
         } else {
-            if(!isEmpty(password) || !isEmpty(confirmPassword)) {
+            if (!isEmpty(password) || !isEmpty(confirmPassword)) {
                 Toast.makeText(
                     activity.baseContext,
                     "Password fields must not be blank!",
@@ -94,13 +98,13 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
                     Toast.LENGTH_SHORT,
                 ).show()
             }
-            if(isEmpty(email)) {
+            if (isEmpty(email)) {
                 Toast.makeText(
                     activity.baseContext,
                     "Email must not be blank!",
                     Toast.LENGTH_SHORT,
                 ).show()
-            } else if(!isEmailValid) {
+            } else if (!isEmailValid) {
                 Toast.makeText(
                     activity.baseContext,
                     "Invalid email! Please try again.",
@@ -113,7 +117,7 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
     fun signIn(email: String, password: String) {
         val isEmailValid = isValidEmail(email)
 
-        if(isEmailValid && !isEmpty(email) && !isEmpty(password)){
+        if (isEmailValid && !isEmpty(email) && !isEmpty(password)) {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity) { task ->
                     if (task.isSuccessful) {
@@ -130,13 +134,13 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
                     }
                 }
         } else {
-            if(isEmpty(email)) {
+            if (isEmpty(email)) {
                 Toast.makeText(
                     activity.baseContext,
                     "Email must not be blank!",
                     Toast.LENGTH_SHORT,
                 ).show()
-            } else if(!isEmailValid) {
+            } else if (!isEmailValid) {
                 Toast.makeText(
                     activity.baseContext,
                     "Invalid email! Please try again.",
@@ -144,7 +148,7 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
                 ).show()
             }
 
-            if(isEmpty(password)) {
+            if (isEmpty(password)) {
                 Toast.makeText(
                     activity.baseContext,
                     "Password must not be blank!",
@@ -167,7 +171,7 @@ class EmailPasswordViewModel(private val activity: EmailPasswordActivity, privat
     }
 
     private fun isValidEmail(target: CharSequence?): Boolean {
-        return if (TextUtils.isEmpty(target)) {
+        return if (isEmpty(target)) {
             false
         } else {
             Patterns.EMAIL_ADDRESS.matcher(target).matches()
