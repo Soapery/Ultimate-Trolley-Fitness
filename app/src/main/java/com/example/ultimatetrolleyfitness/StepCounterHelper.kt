@@ -86,35 +86,37 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
         val progress_circular = activity.findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(
             R.id.progress_circular)
 
-        // If the target device has an Accelerometer
-        if(event!!.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val xAccel: Float = event.values[0]
-            val yAccel: Float = event.values[1]
-            val zAccel: Float = event.values[2]
-            val magnitude: Double = sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
+        if (tv_stepsTaken != null && progress_circular != null) {
+            // If the target device has an Accelerometer
+            if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+                val xAccel: Float = event.values[0]
+                val yAccel: Float = event.values[1]
+                val zAccel: Float = event.values[2]
+                val magnitude: Double = sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
 
-            val magnitudeDelta: Double = magnitude - magnitudePreviousStep
-            magnitudePreviousStep = magnitude
+                val magnitudeDelta: Double = magnitude - magnitudePreviousStep
+                magnitudePreviousStep = magnitude
 
-            if(magnitudeDelta > 6) {
-                totalSteps ++
-            }
+                if (magnitudeDelta > 6) {
+                    totalSteps++
+                }
 
-            val step: Int = totalSteps.toInt()
-            tv_stepsTaken.text = step.toString()
+                val step: Int = totalSteps.toInt()
+                tv_stepsTaken.text = step.toString()
 
-            progress_circular.apply{
-                setProgressWithAnimation(step.toFloat())
-            }
-            // If the target device has a standard step counter
-        } else {
-            if(running){
-                totalSteps = event.values[0]
-                val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
-                tv_stepsTaken.text = currentSteps.toString()
+                progress_circular.apply {
+                    setProgressWithAnimation(step.toFloat())
+                }
+                // If the target device has a standard step counter
+            } else {
+                if (running) {
+                    totalSteps = event?.values?.get(0) ?: 0f
+                    val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
+                    tv_stepsTaken.text = currentSteps.toString()
 
-                progress_circular.apply{
-                    setProgressWithAnimation(currentSteps.toFloat())
+                    progress_circular.apply {
+                        setProgressWithAnimation(currentSteps.toFloat())
+                    }
                 }
             }
         }
@@ -152,3 +154,5 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
 
     }
 }
+
+
