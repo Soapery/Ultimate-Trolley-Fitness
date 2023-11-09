@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -96,7 +97,6 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
             val password: String by viewModel.password.observeAsState("")
             val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
 
-
             Card(
                 shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
                 colors = CardDefaults.cardColors(),
@@ -143,29 +143,35 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         )
                     }
 
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Button(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                if (isSignInState) {
-                                    viewModel.signIn(email, password)
-                                } else {
-                                    viewModel.createAccount(email, password, confirmPassword)
-                                }
+                            .padding(top = 30.dp, bottom = 34.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .fillMaxWidth(),
+                        onClick = {
+                            if (isSignInState) {
+                                viewModel.signIn(email, password)
+                            } else {
+                                viewModel.createAccount(email, password, confirmPassword)
                             }
-                        ) {
-                            Text(text = if (isSignInState) "Submit" else "Register")
-                        }
-
-                        OutlinedButton(
-                            onClick = { viewModel.toggleState() }
-                        ) {
-                            Text(text = if (isSignInState) "Create Account" else "Login")
-                        }
+                        },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                            text = if (isSignInState) "Submit" else "Register"
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                        text = if (isSignInState) "Don't have an account?" else "Returning user?"
+                    )
+                    OutlinedButton(
+                        onClick = { viewModel.toggleState() },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(text = if (isSignInState) "Create Account" else "Login")
                     }
                 }
             }
@@ -204,6 +210,7 @@ fun InputField(
         colors = TextFieldDefaults.outlinedTextFieldColors(
             containerColor = Color.White
         ),
+        modifier = Modifier.fillMaxWidth(),
         leadingIcon = {
             Row(
                 modifier = Modifier.wrapContentWidth(),
@@ -217,6 +224,7 @@ fun InputField(
                         .size(18.dp)
                 )
 
+                // Line between Icon and field
                 Canvas(
                     modifier = Modifier.height(24.dp)
                 ) {
