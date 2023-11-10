@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -101,6 +104,8 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
             val email: String by viewModel.email.observeAsState("")
             val password: String by viewModel.password.observeAsState("")
             val confirmPassword: String by viewModel.confirmPassword.observeAsState("")
+            val isPasswordState by viewModel.isPasswordState.observeAsState(true)
+            val isConfirmPasswordState by viewModel.isConfirmPasswordState.observeAsState(true)
 
             // Banner
             Box(
@@ -139,24 +144,38 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         KeyboardType.Email,
                         VisualTransformation.None,
                         Icons.Rounded.Email,
+                        null,
+                        null,
                         viewModel
                     )
                     InputField(
                         password,
                         "Password",
                         KeyboardType.Password,
-                        PasswordVisualTransformation(),
+                        if(isPasswordState) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                       },
                         Icons.Rounded.Lock,
+                        isPasswordState,
+                        null,
                         viewModel
                     )
 
                     if (!isSignInState) {
                         InputField(
-                            password,
+                            confirmPassword,
                             "Confirm Password",
                             KeyboardType.Password,
-                            PasswordVisualTransformation(),
+                            if(isConfirmPasswordState) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            },
                             Icons.Rounded.Lock,
+                            null,
+                            isConfirmPasswordState,
                             viewModel
                         )
                     }
@@ -186,7 +205,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         text = if (isSignInState) "Don't have an account?" else "Returning user?"
                     )
                     OutlinedButton(
-                        onClick = { viewModel.toggleState() },
+                        onClick = { viewModel.toggleAuthState() },
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(text = if (isSignInState) "Create Account" else "Login")
@@ -205,8 +224,11 @@ fun InputField(
     keyboardType: KeyboardType,
     visualTransformation: VisualTransformation,
     icon: ImageVector,
+    isPasswordState: Boolean?,
+    isConfirmPasswordState: Boolean?,
     viewModel: EmailPasswordViewModel
 ) {
+    val isPassword = label.contains("Password")
     OutlinedTextField(
         value = value,
         onValueChange = {
@@ -251,6 +273,30 @@ fun InputField(
                         start = Offset(0f, 0f),
                         end = Offset(0f, size.height),
                         strokeWidth = 2.0F
+                    )
+                }
+            }
+        },
+        trailingIcon = {
+            if (isPassword) {
+                IconButton(onClick = {
+                    if (label.contains("Confirm")) {
+                        viewModel.toggleConfirmPasswordState()
+                    } else {
+                        viewModel.togglePasswordState()
+                    }
+                }) {
+                    Icon(
+                        imageVector = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
+                                Icons.Default.VisibilityOff
+                            } else {
+                                Icons.Default.Visibility
+                            },
+                        contentDescription = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
+                            "Visibility Off Icon"
+                        } else {
+                            "Visibility Icon"
+                        }
                     )
                 }
             }

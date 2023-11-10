@@ -31,8 +31,14 @@ class EmailPasswordViewModel(
 ) : ViewModel() {
     lateinit var auth: FirebaseAuth
 
-    private val _isSignInState = MutableLiveData(true) // Default value: sign-in state
+    private val _isSignInState = MutableLiveData(true)
     val isSignInState: LiveData<Boolean> get() = _isSignInState
+
+    private val _isPasswordState = MutableLiveData(false)
+    val isPasswordState: LiveData<Boolean> get() = _isPasswordState
+
+    private val _isConfirmPasswordState = MutableLiveData(false)
+    val isConfirmPasswordState: LiveData<Boolean> get() = _isConfirmPasswordState
 
     private var _email = MutableLiveData("")
     var email: LiveData<String> = _email
@@ -43,8 +49,16 @@ class EmailPasswordViewModel(
     private var _confirmPassword = MutableLiveData("")
     var confirmPassword: LiveData<String> = _confirmPassword
 
-    fun toggleState() {
+    fun toggleAuthState() {
         _isSignInState.value = !_isSignInState.value!!
+    }
+
+    fun togglePasswordState() {
+        _isPasswordState.value = !_isPasswordState.value!!
+    }
+
+    fun toggleConfirmPasswordState() {
+        _isConfirmPasswordState.value = !_isConfirmPasswordState.value!!
     }
 
     fun onEmailChanged(newEmail: String) {
