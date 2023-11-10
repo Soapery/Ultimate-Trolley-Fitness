@@ -10,9 +10,12 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tram
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -32,7 +35,23 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
     ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
-                icon = { Icon(Icons.Filled.Favorite, contentDescription = "Favorite") },
+                icon = {
+                    when (index) {
+                        0 -> Icon(
+                            Icons.Filled.Restaurant,
+                            contentDescription = "Nutrition"
+                        ) // Replace with the icon for "Nutrition"
+                        1 -> Icon(
+                            Icons.Filled.Tram,
+                            contentDescription = "Home"
+                        ) // Replace with the icon for "Main"
+                        2 -> Icon(
+                            Icons.Filled.FitnessCenter,
+                            contentDescription = "Workout"
+                        ) // Replace with the icon for "Workout"
+                        else -> Icon(Icons.Filled.Favorite, contentDescription = "Favorite")
+                    }
+                },
                 label = { Text(item.label) },
                 selected = selectedItem == index,
                 onClick = { selectedItem = index }

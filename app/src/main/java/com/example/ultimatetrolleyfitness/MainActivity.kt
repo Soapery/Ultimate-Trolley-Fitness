@@ -56,8 +56,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ScaffoldWithBottomNav(navController: NavController) {
-    BottomNavigationBar(navController)
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Put some content here, composable functions hopefully??
+        Text(text = "Hello, Compose!", modifier = Modifier.weight(1f))
+
+        // Bottom navigation bar
+        BottomNavigationBar(navController = navController)
+    }
 }
+
+
 
 
 
