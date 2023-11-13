@@ -288,14 +288,14 @@ fun InputField(
                 }) {
                     Icon(
                         imageVector = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
-                            Icons.Default.VisibilityOff
-                        } else {
                             Icons.Default.Visibility
+                        } else {
+                            Icons.Default.VisibilityOff
                         },
                         contentDescription = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
-                            "Visibility Off Icon"
-                        } else {
                             "Visibility Icon"
+                        } else {
+                            "Visibility Off Icon"
                         }
                     )
                 }
