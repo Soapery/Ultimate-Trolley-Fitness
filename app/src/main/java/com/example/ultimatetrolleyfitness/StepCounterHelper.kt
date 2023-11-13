@@ -16,7 +16,10 @@ import com.example.ultimatetrolleyfitness.R
 import kotlin.math.sqrt
 
 @RequiresApi(Build.VERSION_CODES.Q)
-class StepCounterHelper( private val activity: ComponentActivity, private val onStepCountChangeListener: (Int) -> Unit ) :  SensorEventListener {
+class StepCounterHelper(
+    private val activity: ComponentActivity,
+    private val onStepCountChangeListener: (Int) -> Unit
+) : SensorEventListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var magnitudePreviousStep = 0.0
     private var sensorManager: SensorManager? = null
@@ -52,27 +55,34 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun onResume(){
+    private fun onResume() {
         running = true
 
         val sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        val detectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        when{
+        when {
             stepSensor != null -> {
                 sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
             }
+
             detectorSensor != null -> {
                 sensorManager.registerListener(this, detectorSensor, SensorManager.SENSOR_DELAY_UI)
             }
+
             accelerometer != null -> {
                 sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
             }
+
             else -> {
-                Toast.makeText(activity, "No compatible sensor detected on this device", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    activity,
+                    "No compatible sensor detected on this device",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -83,8 +93,10 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
 
     override fun onSensorChanged(event: SensorEvent?) {
         val tv_stepsTaken = activity.findViewById<TextView>(R.id.tv_stepsTaken)
-        val progress_circular = activity.findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(
-            R.id.progress_circular)
+        val progress_circular =
+            activity.findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(
+                R.id.progress_circular
+            )
 
         if (tv_stepsTaken != null && progress_circular != null) {
             // If the target device has an Accelerometer
@@ -92,7 +104,8 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
                 val xAccel: Float = event.values[0]
                 val yAccel: Float = event.values[1]
                 val zAccel: Float = event.values[2]
-                val magnitude: Double = sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
+                val magnitude: Double =
+                    sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
 
                 val magnitudeDelta: Double = magnitude - magnitudePreviousStep
                 magnitudePreviousStep = magnitude
@@ -122,13 +135,13 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
         }
     }
 
-    private fun resetSteps(){
+    private fun resetSteps() {
         val tv_stepsTaken = activity.findViewById<TextView>(R.id.tv_stepsTaken)
         tv_stepsTaken.setOnClickListener {
             Toast.makeText(activity, "Long tap to reset steps", Toast.LENGTH_SHORT).show()
         }
 
-        tv_stepsTaken.setOnLongClickListener{
+        tv_stepsTaken.setOnLongClickListener {
             previousTotalSteps = totalSteps
             tv_stepsTaken.text = 0.toString()
             saveData()
@@ -144,7 +157,7 @@ class StepCounterHelper( private val activity: ComponentActivity, private val on
         editor.apply()
     }
 
-    private fun loadData(){
+    private fun loadData() {
         val sharedPreferences = activity.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
         val savedNumber = sharedPreferences.getFloat("key1", 0f)
         previousTotalSteps = savedNumber
