@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 @Composable
@@ -27,34 +28,38 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
         BottomNavItem("Workout")
     )
 
-    var selectedItem by remember { mutableStateOf(0) }
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar(
         modifier = modifier.fillMaxWidth()
     ) {
         items.forEachIndexed { index, item ->
+            val isSelected = currentRoute == getRouteForIndex(index)
+
             NavigationBarItem(
                 icon = {
                     when (index) {
-                        0 -> Icon(
-                            Icons.Filled.Restaurant,
-                            contentDescription = "Nutrition"
-                        ) // Replace with the icon for "Nutrition"
-                        1 -> Icon(
-                            Icons.Filled.Tram,
-                            contentDescription = "Home"
-                        ) // Replace with the icon for "Main"
-                        2 -> Icon(
-                            Icons.Filled.FitnessCenter,
-                            contentDescription = "Workout"
-                        ) // Replace with the icon for "Workout"
+                        0 -> Icon(Icons.Filled.Restaurant, contentDescription = "Nutrition")
+                        1 -> Icon(Icons.Filled.Tram, contentDescription = "Home")
+                        2 -> Icon(Icons.Filled.FitnessCenter, contentDescription = "Workout")
                         else -> Icon(Icons.Filled.Favorite, contentDescription = "Favorite")
                     }
                 },
                 label = { Text(item.label) },
-                selected = selectedItem == index,
-                onClick = { selectedItem = index }
+                selected = isSelected,
+                onClick = {
+                    navController.navigate(getRouteForIndex(index))
+                }
             )
         }
+    }
+}
+
+private fun getRouteForIndex(index: Int): String {
+    return when (index) {
+        0 -> "nutrition"
+        1 -> "home"
+        2 -> "workout"
+        else -> ""
     }
 }

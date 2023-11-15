@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -35,26 +36,65 @@ class MainActivity : ComponentActivity() {
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") {
                     // Your main content goes here
-                    ScaffoldWithBottomNav(navController)
+                    BottomNav(navController = navController) {
+                        HomeScreen()
+                    }
+                }
+                composable("home") {
+                    BottomNav(navController = navController) {
+                        HomeScreen()
+                    }
+                }
+                composable("nutrition") {
+                    BottomNav(navController = navController) {
+                        NutritionScreen()
+                    }
+                }
+                composable("workout") {
+                    BottomNav(navController = navController) {
+                        WorkoutScreen()
+                    }
                 }
                 // Add more composable functions for other destinations as needed
             }
         }
     }
+
 }
 
 @Composable
-fun ScaffoldWithBottomNav(navController: NavController) {
+fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Put some content here, composable functions hopefully??
-        Text(text = "Hello, Compose!", modifier = Modifier.weight(1f))
+        // Content takes remaining space
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            content()
+        }
 
         // Bottom navigation bar
         BottomNavigationBar(navController = navController)
     }
 }
+
+@Composable
+fun HomeScreen(){
+    Text("Welcome to the Home Screen")
+}
+
+@Composable
+fun NutritionScreen() {
+    Text("This is the Nutrition Screen")
+}
+
+@Composable
+fun WorkoutScreen(){
+    Text("This is the Workout Screen")
+}
+
+
 
 
 //@Preview(showBackground = true)
