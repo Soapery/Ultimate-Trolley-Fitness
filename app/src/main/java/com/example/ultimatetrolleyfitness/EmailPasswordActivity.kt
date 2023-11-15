@@ -152,11 +152,11 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                         password,
                         "Password",
                         KeyboardType.Password,
-                        if(isPasswordState) {
+                        if (isPasswordState) {
                             VisualTransformation.None
                         } else {
                             PasswordVisualTransformation()
-                       },
+                        },
                         Icons.Rounded.Lock,
                         isPasswordState,
                         null,
@@ -168,7 +168,7 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
                             confirmPassword,
                             "Confirm Password",
                             KeyboardType.Password,
-                            if(isConfirmPasswordState) {
+                            if (isConfirmPasswordState) {
                                 VisualTransformation.None
                             } else {
                                 PasswordVisualTransformation()
@@ -288,14 +288,14 @@ fun InputField(
                 }) {
                     Icon(
                         imageVector = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                        contentDescription = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
-                            "Visibility Off Icon"
+                            Icons.Default.Visibility
                         } else {
+                            Icons.Default.VisibilityOff
+                        },
+                        contentDescription = if ((label.contains("Confirm") && isConfirmPasswordState == true) || isPasswordState == true) {
                             "Visibility Icon"
+                        } else {
+                            "Visibility Off Icon"
                         }
                     )
                 }

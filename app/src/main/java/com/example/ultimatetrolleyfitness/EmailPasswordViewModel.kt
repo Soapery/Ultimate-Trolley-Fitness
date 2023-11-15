@@ -1,7 +1,6 @@
 package com.example.ultimatetrolleyfitness
 
 import android.app.Application
-import android.text.TextUtils
 import android.text.TextUtils.isEmpty
 import android.util.Log
 import android.util.Patterns

@@ -15,7 +15,7 @@ fun RowScope.BottomNavItem(item: BottomNavItem, selected: Boolean, onClick: () -
     NavigationBarItem(
         selected = selected,
         onClick = { onClick() },
-        icon = { /* Set your icons here */ },
+        icon = { /* TBD */ },
         label = { Text(item.label, color = if (selected) Color.Blue else Color.Gray) },
         modifier = Modifier.fillMaxHeight()
     )
