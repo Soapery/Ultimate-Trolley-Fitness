@@ -92,6 +92,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime:1.5.4")
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("androidx.compose.runtime:runtime-rxjava2:1.5.4")
+    implementation ("com.opencsv:opencsv:5.5.2")
 
     implementation("com.google.accompanist:accompanist-navigation-animation:0.18.0")
     implementation("androidx.compose.ui:ui:1.0.0")

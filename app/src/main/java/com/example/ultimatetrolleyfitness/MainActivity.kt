@@ -57,6 +57,8 @@ class MainActivity : ComponentActivity() {
                 }
                 // Add more composable functions for other destinations as needed
             }
+
+
         }
     }
 
@@ -93,6 +95,8 @@ fun NutritionScreen() {
 fun WorkoutScreen(){
     Text("This is the Workout Screen")
 }
+
+
 
 
 
