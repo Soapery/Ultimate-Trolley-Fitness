@@ -49,6 +49,9 @@ class MainActivity : ComponentActivity() {
             // Set up your navigation controller
             val navController = rememberNavController()
 
+            // Read CSV data before setting content
+            NutritionData.readNutrientsCSV(this@MainActivity)
+
             // Set up your navigation host with destinations
             NavHost(navController = navController, startDestination = "main") {
                 composable("main") {
