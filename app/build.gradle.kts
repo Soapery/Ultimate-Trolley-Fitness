@@ -93,11 +93,12 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("androidx.compose.runtime:runtime-rxjava2:1.5.4")
     implementation ("com.opencsv:opencsv:5.5.2")
-
     implementation("com.google.accompanist:accompanist-navigation-animation:0.18.0")
     implementation("androidx.compose.ui:ui:1.0.0")
     implementation("androidx.compose.material3:material3:1.0.0")
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha01")
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
