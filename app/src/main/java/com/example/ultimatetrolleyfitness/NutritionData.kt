@@ -5,6 +5,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 
 object NutritionData {
+    private val csvData: MutableList<Array<String>> = mutableListOf()
 
     fun readNutrientsCSV(context: Context) {
         val filename = "nutrients_csvfile.csv" // Replace with your actual CSV file name
@@ -17,11 +18,17 @@ object NutritionData {
                 // Process each line from the CSV file
                 // For example, to display in logs:
                 Log.d("CSV Data", nextLine.contentToString())
-                // Or perform other operations with the data
+                // Store data in the list
+                nextLine?.let { csvData.add(it) }
             }
             csvReader.close()
         } catch (e: IOException) {
             e.printStackTrace()
         }
+    }
+
+    // Function to retrieve the CSV data
+    fun getCSVData(): List<Array<String>> {
+        return csvData
     }
 }
