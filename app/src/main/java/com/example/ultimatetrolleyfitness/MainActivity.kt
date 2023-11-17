@@ -3,6 +3,7 @@ package com.example.ultimatetrolleyfitness
 import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -33,14 +36,20 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class MainActivity : ComponentActivity() {
+    private var apiData by mutableStateOf<List<Exercise>?>(null)
     private lateinit var stepTrackerPermissionManager: StepCounterHelper
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fetchDataFromApi()
 
         // Commented out below for testing login form.
         setContentView(R.layout.activity_main)
@@ -72,16 +81,41 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("workout") {
                     BottomNav(navController = navController) {
-                        WorkoutScreen()
+                        WorkoutScreen(apiData)
                     }
                 }
                 // Add more composable functions for other destinations as needed
             }
-
-
         }
     }
 
+    private fun fetchDataFromApi() {
+        val apiService = RetrofitInstance.retrofit.create(myAPI::class.java)
+
+        val call = apiService.getExercises()
+
+        // Asynchronous callback for a successful API response
+        call.enqueue(object : Callback<List<Exercise>> {
+            override fun onResponse(call: Call<List<Exercise>>, response: Response<List<Exercise>>) {
+                if (response.isSuccessful) {
+                    // Extract the response body (products data) from the API response
+                    val myData = response.body()
+
+                    // Update the jsonData state variable with the fetched data
+                    apiData = myData
+                    Log.i("Success", "Data was received")
+                } else {
+                    // Assign error to exercises for feedback to user
+                    Log.e("Failure", response.toString())
+                }
+            }
+
+            override fun onFailure(call: Call<List<Exercise>>, t: Throwable) {
+                // Handle network error
+                t.message?.let { Log.e("Failure", it) }
+            }
+        })
+    }
 }
 
 @Composable
@@ -163,11 +197,29 @@ fun NutritionScreen() {
 }
 
 @Composable
-fun WorkoutScreen(){
-    Text("This is the Workout Screen")
+fun WorkoutScreen(apiData: List<Exercise>?){
+    DisplayJsonData(apiData)
 }
 
+@Composable
+fun DisplayJsonData(data: List<Exercise>?) {
+    LazyColumn {
+        items(data ?: emptyList()) { exercise ->
+            if (exercise.name.isNotEmpty()) {
+                val name = exercise.name
+                val type = exercise.type
+                val difficulty = exercise.difficulty
 
+                Text(
+                    text = "$name: $type. Difficulty: $difficulty.",
+                    modifier = Modifier.padding(16.dp) // Adjust padding as needed
+                )
+            } else {
+                Text(text = "No products were found.")
+            }
+        }
+    }
+}
 
 
 
