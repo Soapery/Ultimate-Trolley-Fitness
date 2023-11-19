@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fetchDataFromApi()
+        fetchDataFromApi("", "", "", "")
 
         // Commented out below for testing login form.
         setContentView(R.layout.activity_main)
@@ -92,7 +92,9 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("workout") {
                     BottomNav(navController = navController) {
-                        WorkoutScreen(apiData)
+                        WorkoutScreen(apiData) { name, type, muscle, difficulty ->
+                            fetchDataFromApi(name, type, muscle, difficulty)
+                        }
                     }
                 }
                 // Add more composable functions for other destinations as needed
@@ -100,10 +102,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun fetchDataFromApi() {
+    private fun fetchDataFromApi(name: String, type: String, muscle: String, difficulty: String) {
         val apiService = RetrofitInstance.retrofit.create(myAPI::class.java)
 
-        val call = apiService.getExercises()
+        val call = apiService.getExercises(name, type, muscle, difficulty)
 
         // Asynchronous callback for a successful API response
         call.enqueue(object : Callback<List<Exercise>> {
@@ -211,7 +213,10 @@ fun NutritionScreen() {
 }
 
 @Composable
-fun WorkoutScreen(apiData: List<Exercise>?) {
+fun WorkoutScreen(
+    apiData: List<Exercise>?,
+    fetchDataFromApi: (String, String, String, String) -> Unit
+) {
     var exerciseName by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf("") }
@@ -228,7 +233,7 @@ fun WorkoutScreen(apiData: List<Exercise>?) {
             selectedDifficulty = selectedDifficulty,
             onSelectedDifficultyChange = { selectedDifficulty = it },
             onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
-
+                fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
             }
         )
         Spacer(modifier = Modifier.weight(1f))
