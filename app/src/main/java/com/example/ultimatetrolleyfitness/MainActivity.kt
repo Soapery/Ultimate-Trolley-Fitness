@@ -48,6 +48,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
+import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -56,14 +57,19 @@ import retrofit2.Response
 class MainActivity : ComponentActivity() {
     private var apiData by mutableStateOf<List<Exercise>?>(null)
     private lateinit var stepTrackerPermissionManager: StepCounterHelper
+    lateinit var auth: FirebaseAuth
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
         fetchDataFromApi("", "", "", "")
 
         // Commented out below for testing login form.
         setContentView(R.layout.activity_main)
+
+        // Confirmation of user authentication
+        auth.currentUser?.email?.let { Log.i("User:", it) }
 
         setContent {
             // Set up your navigation controller

@@ -83,8 +83,8 @@ class EmailPasswordActivity : ComponentActivity() {
         }
     }
 
-    fun updateUI(user: FirebaseUser?) {
-        // Launches main view, but should implement passing user object through to it.
+    fun updateUI() {
+        // User passthrough is unneeded, main activity can access user inherently.
         val intent = Intent(this@EmailPasswordActivity, MainActivity::class.java)
         startActivity(intent)
     }

@@ -87,7 +87,7 @@ class EmailPasswordViewModel(
                     if (task.isSuccessful) {
                         Log.d(TAG, "createUserWithEmail:success")
                         val user = auth.currentUser
-                        activity.updateUI(user)
+                        activity.updateUI()
                     } else {
                         Log.w(TAG, "createUserWithEmail:failure", task.exception)
                         Toast.makeText(
@@ -136,7 +136,7 @@ class EmailPasswordViewModel(
                     if (task.isSuccessful) {
                         Log.d(TAG, "signInWithEmail:success")
                         val user = auth.currentUser
-                        activity.updateUI(user)
+                        activity.updateUI()
                     } else {
                         Log.w(TAG, "signInWithEmail:failure", task.exception)
                         Toast.makeText(
