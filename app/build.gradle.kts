@@ -92,7 +92,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime:1.5.4")
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("androidx.compose.runtime:runtime-rxjava2:1.5.4")
-    implementation ("com.opencsv:opencsv:5.5.2")
+    implementation("com.opencsv:opencsv:5.5.2")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.18.0")
     implementation("androidx.compose.ui:ui:1.0.0")
     implementation("androidx.compose.material3:material3:1.0.0")
@@ -101,4 +101,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+    implementation("com.google.firebase:firebase-database")
 }
