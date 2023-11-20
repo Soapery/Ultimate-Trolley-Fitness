@@ -10,6 +10,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 class EmailPasswordViewModelFactory(
     private val activity: EmailPasswordActivity,
@@ -48,6 +50,10 @@ class EmailPasswordViewModel(
     private var _confirmPassword = MutableLiveData("")
     var confirmPassword: LiveData<String> = _confirmPassword
 
+    private val database = Firebase.database
+    val myRef = database.getReference("users")
+
+
     fun toggleAuthState() {
         _isSignInState.value = !_isSignInState.value!!
     }
@@ -76,26 +82,55 @@ class EmailPasswordViewModel(
         val isEmailValid = isValidEmail(email)
         val doesPasswordMatch = password == confirmPassword
 
-        if (isEmailValid
-            && doesPasswordMatch
-            && !isEmpty(email)
-            && !isEmpty(password)
-            && !isEmpty(confirmPassword)
+        if (
+            isEmailValid &&
+            doesPasswordMatch &&
+            !isEmpty(email) &&
+            !isEmpty(password) &&
+            !isEmpty(confirmPassword)
         ) {
             auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(activity) { task ->
-                    if (task.isSuccessful) {
-                        Log.d(TAG, "createUserWithEmail:success")
-                        val user = auth.currentUser
-                        activity.updateUI()
+                .addOnSuccessListener { authResult ->
+                    val user = authResult.user
+                    if (user != null) {
+                        myRef.setValue(user.email)
+                            .addOnCompleteListener { databaseTask ->
+                                if (databaseTask.isSuccessful) {
+                                    // Database operation successful
+                                    Log.d(TAG, "User added to database")
+                                    activity.updateUI()
+                                } else {
+                                    // Database operation failed
+                                    Log.e(
+                                        TAG,
+                                        "Error adding user to database",
+                                        databaseTask.exception
+                                    )
+                                    Toast.makeText(
+                                        activity.baseContext,
+                                        "Error adding user to database",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                     } else {
-                        Log.w(TAG, "createUserWithEmail:failure", task.exception)
+                        // User is null
+                        Log.e(TAG, "User is null")
                         Toast.makeText(
                             activity.baseContext,
-                            "Account creation failed.",
-                            Toast.LENGTH_SHORT,
+                            "User is null",
+                            Toast.LENGTH_SHORT
                         ).show()
                     }
+                }
+                .addOnFailureListener { e ->
+                    // User creation failed
+                    Log.e(TAG, "createUserWithEmail:failure", e)
+                    Toast.makeText(
+                        activity.baseContext,
+                        "Account creation failed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
         } else {
             if (!isEmpty(password) || !isEmpty(confirmPassword)) {
