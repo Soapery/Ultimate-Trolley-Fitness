@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,7 +94,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("nutrition") {
                     BottomNav(navController = navController) {
-                        NutritionScreen()
+                        NutritionScreen(navController = navController)
                     }
                 }
                 composable("workout") {
@@ -101,6 +102,17 @@ class MainActivity : ComponentActivity() {
                         WorkoutScreen(apiData) { name, type, muscle, difficulty ->
                             fetchDataFromApi(name, type, muscle, difficulty)
                         }
+                    }
+                }
+                composable("foodDetail/{foodName}") { backStackEntry ->
+                    val foodName = backStackEntry.arguments?.getString("foodName")
+                    val foodItem = NutritionData.getCSVData().firstOrNull { it[0] == foodName }
+
+                    if (foodItem != null) {
+                        FoodDetailScreen(foodItem)
+                    } else {
+                        // Handle case when food item is not found
+                        Text("Food item not found")
                     }
                 }
                 // Add more composable functions for other destinations as needed
@@ -164,8 +176,7 @@ fun HomeScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NutritionScreen() {
-    val context = LocalContext.current
+fun NutritionScreen(navController: NavController) {
     val searchText = remember { mutableStateOf("") }
     val csvData = remember { NutritionData.getCSVData() }
     var filteredData by remember { mutableStateOf(csvData) }
@@ -176,6 +187,9 @@ fun NutritionScreen() {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            // Your search TextField and Button go here...
+
+            // For example:
             TextField(
                 value = searchText.value,
                 onValueChange = { searchText.value = it },
@@ -184,11 +198,10 @@ fun NutritionScreen() {
                     .weight(1f)
                     .padding(end = 8.dp),
                 keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search // Set the action for the TextField
+                    imeAction = ImeAction.Search
                 ),
                 keyboardActions = KeyboardActions(
                     onSearch = {
-                        // Filter data based on search text when Enter key is pressed
                         filteredData = csvData.filter { row ->
                             row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                         }
@@ -198,7 +211,6 @@ fun NutritionScreen() {
 
             Button(
                 onClick = {
-                    // Filter data based on search text when the button is clicked
                     filteredData = csvData.filter { row ->
                         row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                     }
@@ -211,10 +223,21 @@ fun NutritionScreen() {
 
         // Display filtered data based on search text
         filteredData.forEach { row ->
-            Text(row.getOrNull(0) ?: "Name not found")
-            // Display the Name attribute of each filtered row in a Text composable
-            // If Name is not present in the row, display a default message
+            ClickableFoodItem(row, navController)
         }
+    }
+}
+
+@Composable
+fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
+    Box(
+        modifier = Modifier
+            .clickable {
+                navController.navigate("foodDetail/${foodItem[0]}") // Navigate with the food name as a parameter
+            }
+            .padding(8.dp)
+    ) {
+        Text(text = foodItem[0]) // Display the name of the food item
     }
 }
 
