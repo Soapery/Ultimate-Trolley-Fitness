@@ -109,13 +109,14 @@ class MainActivity : ComponentActivity() {
                     val foodItem = NutritionData.getCSVData().firstOrNull { it[0] == foodName }
 
                     if (foodItem != null) {
-                        FoodDetailScreen(foodItem)
+                        BottomNav(navController = navController) {
+                            FoodDetailScreen(foodItem)
+                        }
                     } else {
                         // Handle case when food item is not found
                         Text("Food item not found")
                     }
                 }
-                // Add more composable functions for other destinations as needed
             }
         }
     }
@@ -187,9 +188,6 @@ fun NutritionScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Your search TextField and Button go here...
-
-            // For example:
             TextField(
                 value = searchText.value,
                 onValueChange = { searchText.value = it },
@@ -202,6 +200,13 @@ fun NutritionScreen(navController: NavController) {
                 ),
                 keyboardActions = KeyboardActions(
                     onSearch = {
+                        filteredData = csvData.filter { row ->
+                            row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
+                        }
+                    },
+                    onDone = {
+                        // You can handle the Enter key press action here if needed
+                        // For example, triggering the search action similarly to onSearch
                         filteredData = csvData.filter { row ->
                             row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                         }
