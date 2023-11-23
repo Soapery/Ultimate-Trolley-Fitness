@@ -1,5 +1,6 @@
 package com.example.ultimatetrolleyfitness
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.text.TextUtils.isEmpty
 import android.util.Log
@@ -17,6 +18,7 @@ class EmailPasswordViewModelFactory(
     private val activity: EmailPasswordActivity,
     private val application: Application
 ) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EmailPasswordViewModel::class.java)) {
             return EmailPasswordViewModel(activity, application) as T
@@ -25,7 +27,7 @@ class EmailPasswordViewModelFactory(
     }
 }
 
-
+@SuppressLint("StaticFieldLeak")
 class EmailPasswordViewModel(
     private val activity: EmailPasswordActivity,
     private val application: Application
