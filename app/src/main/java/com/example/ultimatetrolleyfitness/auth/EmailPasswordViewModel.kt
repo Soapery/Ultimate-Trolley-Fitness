@@ -14,6 +14,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
+/**
+ * Factory for creating [EmailPasswordViewModel].
+ *
+ * @param activity The [EmailPasswordActivity] associated with the ViewModel.
+ * @param application The application context.
+ */
 class EmailPasswordViewModelFactory(
     private val activity: EmailPasswordActivity,
     private val application: Application
@@ -27,6 +33,12 @@ class EmailPasswordViewModelFactory(
     }
 }
 
+/**
+ * ViewModel responsible for handling email-password authentication logic.
+ *
+ * @param activity The [EmailPasswordActivity] associated with the ViewModel.
+ * @param application The application context.
+ */
 @SuppressLint("StaticFieldLeak")
 class EmailPasswordViewModel(
     private val activity: EmailPasswordActivity,
@@ -56,30 +68,61 @@ class EmailPasswordViewModel(
     val myRef = database.getReference("users")
 
 
+    /**
+     * Toggles the authentication state between sign-in and registration.
+     */
     fun toggleAuthState() {
         _isSignInState.value = !_isSignInState.value!!
     }
 
+    /**
+     * Toggles the visibility state of the password field.
+     */
     fun togglePasswordState() {
         _isPasswordState.value = !_isPasswordState.value!!
     }
 
+    /**
+     * Toggles the visibility state of the confirm password field.
+     */
     fun toggleConfirmPasswordState() {
         _isConfirmPasswordState.value = !_isConfirmPasswordState.value!!
     }
 
+    /**
+     * Handles changes in the email input field.
+     *
+     * @param newEmail The new email value.
+     */
     fun onEmailChanged(newEmail: String) {
         _email.value = newEmail
     }
 
+    /**
+     * Handles changes in the password input field.
+     *
+     * @param newPassword The new password value.
+     */
     fun onPasswordChanged(newPassword: String) {
         _password.value = newPassword
     }
 
+    /**
+     * Handles changes in the confirm password input field.
+     *
+     * @param newConfirmPassword The new confirm password value.
+     */
     fun onConfirmPasswordChanged(newConfirmPassword: String) {
         _confirmPassword.value = newConfirmPassword
     }
 
+    /**
+     * Creates a user account with the provided email and password.
+     *
+     * @param email The user's email.
+     * @param password The user's password.
+     * @param confirmPassword The confirmation of the user's password.
+     */
     fun createAccount(email: String, password: String, confirmPassword: String) {
         val isEmailValid = isValidEmail(email)
         val doesPasswordMatch = password == confirmPassword
@@ -164,6 +207,12 @@ class EmailPasswordViewModel(
         }
     }
 
+    /**
+     * Signs in the user with the provided email and password.
+     *
+     * @param email The user's email.
+     * @param password The user's password.
+     */
     fun signIn(email: String, password: String) {
         val isEmailValid = isValidEmail(email)
 
@@ -208,6 +257,10 @@ class EmailPasswordViewModel(
         }
     }
 
+    /**
+     * Sends email verification to the user.
+     * (Unclear if needed)
+     */
     fun sendEmailVerification() {
         val user = auth.currentUser!!
         user.sendEmailVerification()
@@ -216,10 +269,20 @@ class EmailPasswordViewModel(
             }
     }
 
+    /**
+     * Reloads user data.
+     * (Unclear if needed)
+     */
     fun reload() {
 
     }
 
+    /**
+     * Validates if the email is in the correct format.
+     *
+     * @param target The email address to validate.
+     * @return True if the email is in the correct format, false otherwise.
+     */
     private fun isValidEmail(target: CharSequence?): Boolean {
         return if (isEmpty(target)) {
             false

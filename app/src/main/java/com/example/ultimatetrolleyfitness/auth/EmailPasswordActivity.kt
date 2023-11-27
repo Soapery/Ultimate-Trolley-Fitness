@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -58,12 +59,19 @@ import com.example.ultimatetrolleyfitness.R
 import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
 import com.google.firebase.auth.FirebaseAuth
 
-
+/**
+ * The authentication activity of the app.
+ */
 class EmailPasswordActivity : ComponentActivity() {
     private val viewModel: EmailPasswordViewModel by viewModels {
         EmailPasswordViewModelFactory(this, application)
     }
 
+    /**
+     * Handles starting behavior when this activity is created.
+     *
+     * @param savedInstanceState the Bundle passed into the onCreate method, or null if none currently exists.
+     */
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.auth = FirebaseAuth.getInstance()
@@ -75,6 +83,10 @@ class EmailPasswordActivity : ComponentActivity() {
         }
     }
 
+
+    /**
+     * Executed when the activity is started.
+     */
     public override fun onStart() {
         super.onStart()
 
@@ -84,6 +96,9 @@ class EmailPasswordActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Function to update the UI after successful authentication.
+     */
     fun updateUI() {
         // User passthrough is unneeded, main activity can access user inherently.
         val intent = Intent(this@EmailPasswordActivity, MainActivity::class.java)
@@ -91,6 +106,11 @@ class EmailPasswordActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Composable function representing the login screen of the app.
+ *
+ * @param viewModel The [EmailPasswordViewModel] used for managing authentication.
+ */
 @Composable
 fun LoginScreen(viewModel: EmailPasswordViewModel) {
     Column(
@@ -217,6 +237,18 @@ fun LoginScreen(viewModel: EmailPasswordViewModel) {
     }
 }
 
+/**
+ * Composable function representing an input field for the login screen.
+ *
+ * @param value The value of the input field.
+ * @param label The label for the input field.
+ * @param keyboardType The keyboard type for the input field.
+ * @param visualTransformation The visual transformation for the input field.
+ * @param icon The icon associated with the input field.
+ * @param isPasswordState The state of the password field.
+ * @param isConfirmPasswordState The state of the confirm password field.
+ * @param viewModel The [EmailPasswordViewModel] used for managing authentication.
+ */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun InputField(
@@ -248,8 +280,10 @@ fun InputField(
         ),
         textStyle = TextStyle.Default.copy(fontSize = 16.sp),
         visualTransformation = visualTransformation,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            containerColor = Color.White
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            disabledContainerColor = Color.White,
         ),
         modifier = Modifier.fillMaxWidth(),
         leadingIcon = {
@@ -305,6 +339,9 @@ fun InputField(
     )
 }
 
+/**
+ * Composable function displaying a welcome splash on the login screen.
+ */
 @Composable
 fun WelcomeSplash() {
     Column(
