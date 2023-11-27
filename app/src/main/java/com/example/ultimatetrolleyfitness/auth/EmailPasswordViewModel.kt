@@ -1,4 +1,4 @@
-package com.example.ultimatetrolleyfitness
+package com.example.ultimatetrolleyfitness.auth
 
 import android.annotation.SuppressLint
 import android.app.Application

@@ -1,4 +1,4 @@
-package com.example.ultimatetrolleyfitness
+package com.example.ultimatetrolleyfitness.auth
 
 import android.content.Intent
 import android.os.Bundle
@@ -53,9 +53,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.example.ultimatetrolleyfitness.MainActivity
+import com.example.ultimatetrolleyfitness.R
 import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 
 
 class EmailPasswordActivity : ComponentActivity() {

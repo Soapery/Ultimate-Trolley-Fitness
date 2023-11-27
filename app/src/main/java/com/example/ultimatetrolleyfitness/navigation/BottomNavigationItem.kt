@@ -1,4 +1,4 @@
-package com.example.ultimatetrolleyfitness
+package com.example.ultimatetrolleyfitness.navigation
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight

@@ -39,8 +39,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -48,6 +46,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ultimatetrolleyfitness.exercise.Exercise
+import com.example.ultimatetrolleyfitness.exercise.myAPI
+import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
 import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call

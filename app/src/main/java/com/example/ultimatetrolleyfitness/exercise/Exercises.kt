@@ -1,4 +1,4 @@
-package com.example.ultimatetrolleyfitness
+package com.example.ultimatetrolleyfitness.exercise
 
 data class Exercise(
     val id: Int,
