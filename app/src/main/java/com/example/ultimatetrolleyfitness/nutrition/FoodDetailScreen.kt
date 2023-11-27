@@ -1,4 +1,4 @@
-package com.example.ultimatetrolleyfitness
+package com.example.ultimatetrolleyfitness.nutrition
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

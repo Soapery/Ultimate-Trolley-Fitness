@@ -1,6 +1,6 @@
 package com.example.ultimatetrolleyfitness
 
-import NutritionData
+import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ultimatetrolleyfitness.exercise.Exercise
 import com.example.ultimatetrolleyfitness.exercise.myAPI
 import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
+import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
 import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call
