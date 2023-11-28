@@ -1,6 +1,5 @@
 package com.example.ultimatetrolleyfitness
 
-import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
@@ -22,6 +21,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +34,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -40,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -47,9 +56,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ultimatetrolleyfitness.exercise.Exercise
+import com.example.ultimatetrolleyfitness.exercise.ExerciseDetailSheet
 import com.example.ultimatetrolleyfitness.exercise.myAPI
 import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
 import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
+import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
 import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call
@@ -283,16 +294,62 @@ fun DisplayJsonData(data: List<Exercise>?) {
     LazyColumn {
         items(data ?: emptyList()) { exercise ->
             if (exercise.name.isNotEmpty()) {
+                val buttonState = remember { mutableStateOf(false) }
+                val showSheet = remember { mutableStateOf(false) }
                 val name = exercise.name
                 val type = exercise.type
                 val difficulty = exercise.difficulty
 
-                Text(
-                    text = "$name: $type. Difficulty: $difficulty.",
-                    modifier = Modifier.padding(16.dp) // Adjust padding as needed
+                if (showSheet.value) {
+                    ExerciseDetailSheet(
+                        name = exercise.name,
+                        type = exercise.type,
+                        muscle = exercise.muscle,
+                        equipment = exercise.equipment,
+                        difficulty = exercise.difficulty,
+                        instructions = exercise.instructions
+                    ) {
+                        showSheet.value = false
+                    }
+                }
+
+                ListItem(
+                    leadingContent = {
+                        IconButton(onClick = {buttonState.value = !buttonState.value }) { // Should add to users workout plan
+                            Icon(
+                                imageVector = if (buttonState.value) {
+                                    Icons.Default.Favorite
+                                } else {
+                                    Icons.Default.FavoriteBorder
+                                },
+                                contentDescription = if (buttonState.value) {
+                                    "Remove from Favorites button"
+                                } else {
+                                    "Add to favorites button"
+                                }
+                            )
+                        }
+                    },
+                    headlineContent = {
+                        Text(text = name.replaceFirstChar { it.uppercase() })
+                    },
+                    overlineContent = {
+                        Text(text = type.replaceFirstChar { it.uppercase() })
+                    },
+                    supportingContent = {
+                        Text(text = "Difficulty: ${difficulty.replaceFirstChar { it.uppercase() }}")
+                    },
+                    trailingContent = {
+                        IconButton(onClick = {showSheet.value = true}) { // Should launch detailed workout info screen
+                            Icon(
+                                imageVector = (Icons.Outlined.Info),
+                                contentDescription = "Info Button"
+                            )
+                        }
+                    }
                 )
             } else {
-                Text(text = "No products were found.")
+                Text(text = "No exercises were found.")
             }
         }
     }
@@ -340,7 +397,8 @@ fun WorkoutSearchBar(
         shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp),
         colors = CardDefaults.cardColors(),
         modifier = Modifier
-            .fillMaxWidth()) {
+            .fillMaxWidth()
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
@@ -360,7 +418,7 @@ fun WorkoutSearchBar(
                 onExpandedChange = { typeExpanded = it },
             ) {
                 TextField(
-                    value = ( if (selectedType !== "") selectedType else "Exercise Type" ),
+                    value = (if (selectedType !== "") selectedType else "Exercise Type"),
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = {
@@ -392,7 +450,7 @@ fun WorkoutSearchBar(
                 onExpandedChange = { muscleExpanded = it },
             ) {
                 TextField(
-                    value = ( if (selectedMuscle !== "") selectedMuscle else "Target Muscle" ),
+                    value = (if (selectedMuscle !== "") selectedMuscle else "Target Muscle"),
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = {
@@ -424,7 +482,7 @@ fun WorkoutSearchBar(
                 onExpandedChange = { difficultyExpanded = it },
             ) {
                 TextField(
-                    value = ( if (selectedDifficulty !== "") selectedDifficulty else "Difficulty" ),
+                    value = (if (selectedDifficulty !== "") selectedDifficulty else "Difficulty"),
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = {
