@@ -299,16 +299,19 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 val showSheet = remember { mutableStateOf(false) }
                 val name = exercise.name
                 val type = exercise.type
+                val muscle = exercise.muscle
+                val equipment = exercise.equipment
                 val difficulty = exercise.difficulty
+                val instructions = exercise.instructions
 
                 if (showSheet.value) {
                     ExerciseDetailSheet(
-                        name = exercise.name,
-                        type = exercise.type,
-                        muscle = exercise.muscle,
-                        equipment = exercise.equipment,
-                        difficulty = exercise.difficulty,
-                        instructions = exercise.instructions
+                        name = name,
+                        type = type,
+                        muscle = muscle,
+                        equipment = equipment,
+                        difficulty = difficulty,
+                        instructions = instructions
                     ) {
                         showSheet.value = false
                     }
@@ -335,7 +338,7 @@ fun DisplayJsonData(data: List<Exercise>?) {
                         Text(text = name.replaceFirstChar { it.uppercase() })
                     },
                     overlineContent = {
-                        Text(text = type.replaceFirstChar { it.uppercase() })
+                        Text(text = "${type.replaceFirstChar { it.uppercase() }} - ${muscle.replaceFirstChar { it.uppercase() }}")
                     },
                     supportingContent = {
                         Text(text = "Difficulty: ${difficulty.replaceFirstChar { it.uppercase() }}")
