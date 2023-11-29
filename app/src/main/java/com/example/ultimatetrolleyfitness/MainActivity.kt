@@ -4,6 +4,7 @@ import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -51,6 +52,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -135,6 +137,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+
     private fun fetchDataFromApi(name: String, type: String, muscle: String, difficulty: String) {
         val apiService = RetrofitInstance.retrofit.create(myAPI::class.java)
 
@@ -186,8 +190,9 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 
 @Composable
 fun HomeScreen() {
-    Text("Welcome to the Home Screen")
+
 }
+
 
 @Composable
 fun NutritionScreen(navController: NavController) {
@@ -358,6 +363,7 @@ fun DisplayJsonData(data: List<Exercise>?) {
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -542,7 +548,10 @@ fun WorkoutSearchBar(
 //            updateUI(stepCount)
 //        }
 
-// Update UI based on the step count
+// Function to update UI with step count
+
+
+//
 //    private fun updateUI(stepCount: Int) {
 //        val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
 //        val progress_circular = findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(R.id.progress_circular)
