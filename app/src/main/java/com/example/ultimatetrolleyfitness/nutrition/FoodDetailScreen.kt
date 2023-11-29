@@ -65,6 +65,7 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
     }
 }
 
+
 @Composable
 fun FoodAttribute(attribute: String, value: String) {
     Column(
