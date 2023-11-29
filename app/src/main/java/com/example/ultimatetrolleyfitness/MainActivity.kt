@@ -123,13 +123,14 @@ class MainActivity : ComponentActivity() {
 
                     if (foodItem != null) {
                         BottomNav(navController = navController) {
-                            FoodDetailScreen(foodItem)
+                            FoodDetailScreen(foodItem, navController)
                         }
                     } else {
                         // Handle case when food item is not found
                         Text("Food item not found")
                     }
                 }
+
             }
         }
     }
@@ -188,7 +189,6 @@ fun HomeScreen() {
     Text("Welcome to the Home Screen")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionScreen(navController: NavController) {
     val searchText = remember { mutableStateOf("") }
@@ -218,8 +218,6 @@ fun NutritionScreen(navController: NavController) {
                         }
                     },
                     onDone = {
-                        // You can handle the Enter key press action here if needed
-                        // For example, triggering the search action similarly to onSearch
                         filteredData = csvData.filter { row ->
                             row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                         }
@@ -239,9 +237,12 @@ fun NutritionScreen(navController: NavController) {
             }
         }
 
-        // Display filtered data based on search text
-        filteredData.forEach { row ->
-            ClickableFoodItem(row, navController)
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            items(filteredData) { foodItem ->
+                ClickableFoodItem(foodItem, navController)
+            }
         }
     }
 }

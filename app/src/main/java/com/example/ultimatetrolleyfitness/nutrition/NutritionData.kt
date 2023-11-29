@@ -9,8 +9,9 @@ import java.io.InputStreamReader
 object NutritionData {
     private val csvData: MutableList<Array<String>> = mutableListOf()
 
+    // Read Nutrition Data from CSV.
     fun readNutrientsCSV(context: Context) {
-        val filename = "nutrients_csvfile.csv" // Replace with your actual CSV file name
+        val filename = "nutrients_csvfile.csv"
         try {
             val inputStream = context.assets.open(filename)
             val inputStreamReader = InputStreamReader(inputStream)
@@ -18,7 +19,6 @@ object NutritionData {
             var nextLine: Array<String>?
             while (csvReader.readNext().also { nextLine = it } != null) {
                 // Process each line from the CSV file
-                // For example, to display in logs:
                 Log.d("CSV Data", nextLine.contentToString())
                 // Store data in the list
                 nextLine?.let { csvData.add(it) }
