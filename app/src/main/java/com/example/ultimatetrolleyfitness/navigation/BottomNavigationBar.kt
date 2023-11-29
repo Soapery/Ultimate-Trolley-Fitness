@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-
+/**
+ * Bottom Navigation Bar for the application. Provides Home, Nutrition and Exercise main pages.
+ */
 @Composable
 fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modifier) {
     val items = listOf(
@@ -50,6 +52,7 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
         }
     }
 }
+
 
 private fun getRouteForIndex(index: Int): String {
     return when (index) {

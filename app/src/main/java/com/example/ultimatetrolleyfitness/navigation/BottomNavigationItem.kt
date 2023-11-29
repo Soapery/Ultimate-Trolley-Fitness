@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
+/**
+ * Class for supplying navigation Items to the Bottom Navigation Bar.
+ */
 data class BottomNavItem(val label: String)
 
 @Composable

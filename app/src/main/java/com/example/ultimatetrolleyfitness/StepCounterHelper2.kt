@@ -16,6 +16,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import java.lang.Math.sqrt
 
+/**
+ *  Step Counter Helper 2. Logic to be implemented in a composable function to supply a tracker without a progress bar.
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
 class StepCounterHelper(
     private val activity: ComponentActivity,

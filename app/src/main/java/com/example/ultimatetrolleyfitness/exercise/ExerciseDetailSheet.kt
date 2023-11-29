@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Detailed view for Workout information supplied by workout API
+ */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ExerciseDetailSheet(name: String, type: String, muscle: String, equipment: String, difficulty: String, instructions: String, onDismiss: () -> Unit) {

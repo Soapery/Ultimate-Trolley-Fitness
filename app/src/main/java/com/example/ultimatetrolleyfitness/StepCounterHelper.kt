@@ -15,6 +15,9 @@ import androidx.core.content.ContextCompat
 import com.example.ultimatetrolleyfitness.R
 import kotlin.math.sqrt
 
+/**
+ * Step Counter Helper, provides logic for the step tracker when implemented in the main activity.
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
 class StepCounterHelper(
     private val activity: ComponentActivity,

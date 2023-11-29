@@ -15,7 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
-// Structure of the nutrition detailed pages.
+/**
+ * Detailed views for each food item displayed by the CSV.
+ */
 @Composable
 fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
     Card(
@@ -35,7 +37,7 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
             FoodAttribute("Carbs", foodItem[8])
             FoodAttribute("Category", foodItem[9])
 
-            // Back button to navigate back to the food list
+            // Back Button
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -46,8 +48,9 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
             }
 
             // Placeholder for Add button (functionality to be added later)
+            // Add will persist nutrition information to database
             Button(
-                onClick = { /* Add functionality goes here */ },
+                onClick = { /* Add Functionality */ },
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .fillMaxWidth(),

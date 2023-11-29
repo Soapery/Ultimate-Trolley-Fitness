@@ -6,6 +6,9 @@ import com.opencsv.CSVReader
 import java.io.IOException
 import java.io.InputStreamReader
 
+/**
+ * Reads Data from a Nutrition Data CSV File. Displays information such as calories, protein etc..
+ */
 object NutritionData {
     private val csvData: MutableList<Array<String>> = mutableListOf()
 
