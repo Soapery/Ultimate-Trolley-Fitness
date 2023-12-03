@@ -38,6 +38,8 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -190,7 +192,33 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 
 @Composable
 fun HomeScreen() {
-
+    var selectedTabIndex by remember { mutableStateOf(0)}
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ){
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            Tab(
+                text = { Text("Progress") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            Tab(
+                text = { Text("Your Plan") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            ) 
+        }
+        
+        when (selectedTabIndex) {
+            0 -> Text(text = "Progress Content")
+            1 -> Text(text= "Plans")
+        }
+    }
 }
 
 
@@ -274,25 +302,81 @@ fun WorkoutScreen(
     var selectedType by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf("") }
     var selectedDifficulty by remember { mutableStateOf("") }
+    var selectedTabIndex by remember { mutableStateOf(0) }
 
-    Column {
-        WorkoutSearchBar(
-            exerciseName = exerciseName,
-            onExerciseNameChange = { exerciseName = it },
-            selectedType = selectedType,
-            onSelectedTypeChange = { selectedType = it },
-            selectedMuscle = selectedMuscle,
-            onSelectedMuscleChange = { selectedMuscle = it },
-            selectedDifficulty = selectedDifficulty,
-            onSelectedDifficultyChange = { selectedDifficulty = it },
-            onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
-                fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            Tab(
+                text = { Text("Browse") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            Tab(
+                text = { Text("Favorites") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            )
+        }
+        
+        when (selectedTabIndex) {
+            0 -> {
+                WorkoutSearchBar(
+                    exerciseName = exerciseName,
+                    onExerciseNameChange = { exerciseName = it },
+                    selectedType = selectedType,
+                    onSelectedTypeChange = { selectedType = it },
+                    selectedMuscle = selectedMuscle,
+                    onSelectedMuscleChange = { selectedMuscle = it },
+                    selectedDifficulty = selectedDifficulty,
+                    onSelectedDifficultyChange = { selectedDifficulty = it },
+                    onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
+                        fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
+                    }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                BrowseTabContent(apiData)
             }
-        )
-        Spacer(modifier = Modifier.weight(1f))
+            1 -> FavoritesTabContent()
+        }
+    }
+//    Column {
+//        WorkoutSearchBar(
+//            exerciseName = exerciseName,
+//            onExerciseNameChange = { exerciseName = it },
+//            selectedType = selectedType,
+//            onSelectedTypeChange = { selectedType = it },
+//            selectedMuscle = selectedMuscle,
+//            onSelectedMuscleChange = { selectedMuscle = it },
+//            selectedDifficulty = selectedDifficulty,
+//            onSelectedDifficultyChange = { selectedDifficulty = it },
+//            onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
+//                fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
+//            }
+//        )
+//        Spacer(modifier = Modifier.weight(1f))
+//        DisplayJsonData(apiData)
+//    }
+
+}
+
+@Composable
+fun BrowseTabContent(apiData: List<Exercise>?) {
+    if (apiData.isNullOrEmpty()) {
+        Text(text = "No exercises were found.")
+    } else {
         DisplayJsonData(apiData)
     }
+}
 
+@Composable
+fun FavoritesTabContent() {
+    Text(text = "Favorites Tab Content")
 }
 
 @Composable
@@ -323,22 +407,22 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 }
 
                 ListItem(
-                    leadingContent = {
-                        IconButton(onClick = {buttonState.value = !buttonState.value }) { // Should add to users workout plan
-                            Icon(
-                                imageVector = if (buttonState.value) {
-                                    Icons.Default.Favorite
-                                } else {
-                                    Icons.Default.FavoriteBorder
-                                },
-                                contentDescription = if (buttonState.value) {
-                                    "Remove from Favorites button"
-                                } else {
-                                    "Add to favorites button"
-                                }
-                            )
-                        }
-                    },
+//                    leadingContent = {
+//                        IconButton(onClick = {buttonState.value = !buttonState.value }) { // Should add to users workout plan
+//                            Icon(
+//                                imageVector = if (buttonState.value) {
+//                                    Icons.Default.Favorite
+//                                } else {
+//                                    Icons.Default.FavoriteBorder
+//                                },
+//                                contentDescription = if (buttonState.value) {
+//                                    "Remove from Favorites button"
+//                                } else {
+//                                    "Add to favorites button"
+//                                }
+//                            )
+//                        }
+//                    },
                     headlineContent = {
                         Text(text = name.replaceFirstChar { it.uppercase() })
                     },
