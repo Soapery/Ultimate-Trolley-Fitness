@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -116,9 +117,12 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("workout") {
                     BottomNav(navController = navController) {
-                        WorkoutScreen(apiData) { name, type, muscle, difficulty ->
+                        WorkoutScreen(
+                            apiData,
+                            fetchDataFromApi = { name, type, muscle, difficulty ->
                             fetchDataFromApi(name, type, muscle, difficulty)
-                        }
+                            }
+                        )
                     }
                 }
                 composable("foodDetail/{foodName}") { backStackEntry ->
@@ -303,6 +307,7 @@ fun WorkoutScreen(
     var selectedMuscle by remember { mutableStateOf("") }
     var selectedDifficulty by remember { mutableStateOf("") }
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var searchButtonClicked by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -336,11 +341,14 @@ fun WorkoutScreen(
                     selectedDifficulty = selectedDifficulty,
                     onSelectedDifficultyChange = { selectedDifficulty = it },
                     onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
+                        searchButtonClicked = true
                         fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
                     }
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                BrowseTabContent(apiData)
+                if (searchButtonClicked) {
+                    BrowseTabContent(apiData)
+                }
             }
             1 -> FavoritesTabContent()
         }
