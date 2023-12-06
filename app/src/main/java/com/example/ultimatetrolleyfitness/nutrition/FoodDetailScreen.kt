@@ -9,15 +9,28 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.database
 
 /**
  * Detailed views for each food item displayed by the CSV.
  */
+
+// Firebase database reference
+val database = Firebase.database
+val foodRef = database.getReference("foods")
+
+val currentUser = FirebaseAuth.getInstance().currentUser
+val currentUserID = currentUser?.uid // Get the unique user ID
+
+
 @Composable
 fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
     Card(
@@ -26,6 +39,8 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
             .padding(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Display food details using FoodAttribute
+
             FoodAttribute("Name", foodItem[0])
             FoodAttribute("Measure", foodItem[1])
             FoodAttribute("Grams", foodItem[2])
@@ -47,10 +62,23 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
                 Text("Back")
             }
 
+
+
             // Placeholder for Add button (functionality to be added later)
             // Add will persist nutrition information to database
             Button(
-                onClick = { /* Add Functionality */ },
+                onClick = {
+                    // Ensure the user is logged in before associating the food item with the user
+                    currentUserID?.let { uid ->
+                        // Create a map to associate the food item with the current user
+                        val foodMap = mutableMapOf<String, Any>()
+                        foodMap["userID"] = uid // Associate the food with the current user
+                        foodMap["foodDetails"] = foodItem.toMutableList() // Add food details
+
+                        val newFoodRef = foodRef.push()
+                        newFoodRef.setValue(foodMap) // Push the food item associated with the user to the database
+                    }
+                },
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .fillMaxWidth(),

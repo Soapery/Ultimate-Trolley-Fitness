@@ -44,6 +44,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +68,12 @@ import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
 import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
 import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -226,8 +232,53 @@ fun HomeScreen() {
 }
 
 
+data class Food(
+    val name: String,
+    val measure: String,
+    val grams: String,
+    val calories: String,
+    val protein: String,
+    val fat: String,
+    val saturatedFats: String,
+    val fiber: String,
+    val carbs: String,
+    val category: String
+    // Add other properties as per your data structure
+)
+
 @Composable
 fun NutritionScreen(navController: NavController) {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
+    Column {
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            Tab(
+                text = { Text("Browse") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            Tab(
+                text = { Text("My Food") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            )
+        }
+
+        when (selectedTabIndex) {
+            0 -> {
+                BrowseNutritionContent(navController)
+            }
+            1 -> {
+                MyFoodContent()
+            }
+        }
+    }
+}
+
+@Composable
+fun BrowseNutritionContent(navController: NavController) {
     val searchText = remember { mutableStateOf("") }
     val csvData = remember { NutritionData.getCSVData() }
     var filteredData by remember { mutableStateOf(csvData) }
@@ -282,6 +333,60 @@ fun NutritionScreen(navController: NavController) {
             }
         }
     }
+}
+
+@Composable
+fun MyFoodContent() {
+    val userId = getCurrentUserId() // Fetch the current user's ID using Firebase Authentication
+
+    // Fetch the user's food items from Firebase Realtime Database using userId
+    val userFoods = remember { mutableStateOf<List<Food>>(emptyList()) }
+
+    // Perform Firebase Database call to fetch user-specific foods based on userId
+    LaunchedEffect(userId) {
+        // Replace this with your actual Firebase Database logic
+        // For example:
+        val firebaseDatabase = Firebase.database
+        val userFoodsRef = firebaseDatabase.getReference("foods").child(userId ?: "")
+
+        val foodList = mutableListOf<Food>()
+        userFoodsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (foodSnapshot in snapshot.children) {
+                    val food = foodSnapshot.getValue(Food::class.java)
+                    food?.let {
+                        foodList.add(it)
+                    }
+                }
+                userFoods.value = foodList
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle database error if necessary
+            }
+        })
+    }
+
+    // Display the user-specific food items
+    LazyColumn {
+        items(userFoods.value) { foodItem ->
+            Column {
+                Text(text = "Name: ${foodItem.name}")
+                Text(text = "Measure: ${foodItem.measure}")
+                Text(text = "Calories: ${foodItem.calories}")
+                // Display other properties as needed
+            }
+        }
+    }
+}
+
+// Function to fetch the current user's ID using Firebase Authentication
+fun getCurrentUserId(): String? {
+    // Replace this with your actual code to get the current user's ID
+    // For example:
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val currentUser = firebaseAuth.currentUser
+    return currentUser?.uid
 }
 
 @Composable
