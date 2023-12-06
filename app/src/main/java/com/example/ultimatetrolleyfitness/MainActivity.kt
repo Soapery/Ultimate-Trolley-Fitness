@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,7 @@ import com.example.ultimatetrolleyfitness.exercise.Exercise
 import com.example.ultimatetrolleyfitness.exercise.ExerciseDetailSheet
 import com.example.ultimatetrolleyfitness.exercise.myAPI
 import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
+import com.example.ultimatetrolleyfitness.nutrition.FoodAttribute
 import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
 import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
@@ -232,19 +234,6 @@ fun HomeScreen() {
 }
 
 
-data class Food(
-    val name: String,
-    val measure: String,
-    val grams: String,
-    val calories: String,
-    val protein: String,
-    val fat: String,
-    val saturatedFats: String,
-    val fiber: String,
-    val carbs: String,
-    val category: String
-    // Add other properties as per your data structure
-)
 
 @Composable
 fun NutritionScreen(navController: NavController) {
@@ -337,57 +326,97 @@ fun BrowseNutritionContent(navController: NavController) {
 
 @Composable
 fun MyFoodContent() {
-    val userId = getCurrentUserId() // Fetch the current user's ID using Firebase Authentication
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+    var foodsState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
 
-    // Fetch the user's food items from Firebase Realtime Database using userId
-    val userFoods = remember { mutableStateOf<List<Food>>(emptyList()) }
+    // Fetch user's food data from Firebase Realtime Database
+    SideEffect {
+        if (currentUserID != null) {
+            val database = Firebase.database
+            val foodRef = database.getReference("foods")
 
-    // Perform Firebase Database call to fetch user-specific foods based on userId
-    LaunchedEffect(userId) {
-        // Replace this with your actual Firebase Database logic
-        // For example:
-        val firebaseDatabase = Firebase.database
-        val userFoodsRef = firebaseDatabase.getReference("foods").child(userId ?: "")
-
-        val foodList = mutableListOf<Food>()
-        userFoodsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (foodSnapshot in snapshot.children) {
-                    val food = foodSnapshot.getValue(Food::class.java)
-                    food?.let {
-                        foodList.add(it)
+            foodRef.orderByChild("userID").equalTo(currentUserID)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val foodsList = mutableListOf<Array<String>>()
+                        for (snapshot in dataSnapshot.children) {
+                            val foodDetails = snapshot.child("foodDetails").value as? List<String>
+                            foodDetails?.let {
+                                foodsList.add(it.toTypedArray())
+                            }
+                        }
+                        foodsState = foodsList
                     }
-                }
-                userFoods.value = foodList
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle database error if necessary
-            }
-        })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors that may occur while fetching data
+                    }
+                })
+        }
     }
 
-    // Display the user-specific food items
-    LazyColumn {
-        items(userFoods.value) { foodItem ->
-            Column {
-                Text(text = "Name: ${foodItem.name}")
-                Text(text = "Measure: ${foodItem.measure}")
-                Text(text = "Calories: ${foodItem.calories}")
-                // Display other properties as needed
+    // Display user's food data
+    Column {
+        Text("My Uploaded Food Items") // Header for the user's food items
+        LazyColumn {
+            items(foodsState) { foodItem ->
+                FoodItemCard(foodItem)
             }
         }
     }
 }
 
-// Function to fetch the current user's ID using Firebase Authentication
-fun getCurrentUserId(): String? {
-    // Replace this with your actual code to get the current user's ID
-    // For example:
-    val firebaseAuth = FirebaseAuth.getInstance()
-    val currentUser = firebaseAuth.currentUser
-    return currentUser?.uid
+@Composable
+fun FoodItemCard(foodItem: Array<String>) {
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            foodItem.forEachIndexed { index, value ->
+                FoodAttribute(attribute = "Field ${index + 1}", value = value)
+            }
+
+            // Add a button to remove the item from the database
+            if (currentUserID != null) {
+                Button(
+                    onClick = {
+                        val database = Firebase.database
+                        val foodRef = database.getReference("foods")
+
+                        // Find and remove the corresponding record from the database
+                        foodRef.orderByChild("userID").equalTo(currentUserID)
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                    for (snapshot in dataSnapshot.children) {
+                                        val foodDetails = snapshot.child("foodDetails").value as? List<String>
+                                        if (foodDetails != null && foodDetails.toTypedArray() contentDeepEquals foodItem) {
+                                            snapshot.ref.removeValue() // Remove the item from the database
+                                            break
+                                        }
+                                    }
+                                }
+
+                                override fun onCancelled(databaseError: DatabaseError) {
+                                    // Handle any errors that may occur while removing data
+                                }
+                            })
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Remove")
+                }
+            }
+        }
+    }
 }
+
+
 
 @Composable
 fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
