@@ -340,17 +340,19 @@ fun MyFoodContent() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val foodsList = mutableListOf<Array<String>>()
                     val children = snapshot.children
-                    Log.d("Food list", children.toString())
 
                     children.forEach() { it ->
                         //Log.d("Child", it)
-                        val foodDetails = it.value as? List<String>
+                        val foodDetails = it.value as? MutableList<String>
+                        if (foodDetails != null) {
+                            it.key?.let { it1 -> foodDetails.add(it1) }
+                        }
                         foodDetails?.let {
                             foodsList.add(it.toTypedArray())
+
                         }
                     }
                     foodsState = foodsList
-                    Log.d("Food list", foodsList.toString())
 
                 }
 
@@ -376,6 +378,7 @@ fun MyFoodContent() {
 @Composable
 fun FoodItemCard(foodItem: Array<String>) {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+    var key by remember { mutableStateOf<String>("") }
 
     Card(
         modifier = Modifier
@@ -396,53 +399,16 @@ fun FoodItemCard(foodItem: Array<String>) {
                 if (index < attributeNames.size) {
                     FoodAttribute(attribute = attributeNames[index], value = value)
                 } else {
-                    FoodAttribute(attribute = "Attribute ${index + 1}", value = value)
+                    //FoodAttribute(attribute = "Attribute ${index + 1}", value = value)
+                    key = value
+                    Log.d("Key", key)
                 }
             }
 
             // Add a button to remove the item from the database
             if (currentUserID != null) {
                 Button(
-                    onClick = {
-                        val database = Firebase.database
-                        val foodRef = DatabaseConnection("foods")
-
-//                        // Find and remove the corresponding record from the database
-//                        foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
-//                            override fun onDataChange(snapshot: DataSnapshot) {
-//                                val foodsList = mutableListOf<Array<String>>()
-//                                val children = snapshot.children
-//
-//                                children.forEach() { it ->
-//                                    val foodDetails = it.value as? List<String>
-//                                    foodDetails?.let {
-//                                        foodsList.add(it.toTypedArray())
-//                                    }
-//                                }
-//                                foodsState = foodsList
-//                            }
-//
-//                            override fun onCancelled(databaseError: DatabaseError) {
-//                                // Handle any errors that may occur while fetching data
-//                            }
-//                        })
-
-                        foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
-                            override fun onDataChange(snapshot: DataSnapshot) {
-                                val children = snapshot.children
-                                children.forEach() { it ->
-                                    val foodDetails = it.value as? List<String>
-                                    if (foodDetails != null && foodDetails.toTypedArray() contentDeepEquals foodItem) {
-                                        snapshot.ref.removeValue() // Remove the item from the database
-                                    }
-                                }
-                            }
-
-                            override fun onCancelled(databaseError: DatabaseError) {
-                                // Handle any errors that may occur while removing data
-                            }
-                        })
-                    },
+                    onClick = { DatabaseConnection("foods")?.child(key)?.removeValue() },
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Text("Remove")
