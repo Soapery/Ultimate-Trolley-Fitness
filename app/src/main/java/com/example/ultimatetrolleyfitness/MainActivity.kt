@@ -378,8 +378,19 @@ fun FoodItemCard(foodItem: Array<String>) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Define the attribute names corresponding to the CSV fields
+            val attributeNames = listOf(
+                "Name", "Measure", "Grams", "Calories",
+                "Protein", "Fat", "Saturated Fats", "Fiber", "Carbs", "Category"
+            )
+
             foodItem.forEachIndexed { index, value ->
-                FoodAttribute(attribute = "Field ${index + 1}", value = value)
+                // Use attribute names defined above
+                if (index < attributeNames.size) {
+                    FoodAttribute(attribute = attributeNames[index], value = value)
+                } else {
+                    FoodAttribute(attribute = "Attribute ${index + 1}", value = value)
+                }
             }
 
             // Add a button to remove the item from the database

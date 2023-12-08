@@ -1,5 +1,6 @@
 package com.example.ultimatetrolleyfitness.nutrition
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,6 +31,8 @@ val foodRef = database.getReference("foods")
 
 val currentUser = FirebaseAuth.getInstance().currentUser
 val currentUserID = currentUser?.uid // Get the unique user ID
+
+
 
 
 @Composable
@@ -62,14 +66,17 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
                 Text("Back")
             }
 
+            val context = LocalContext.current
 
-
-            // Placeholder for Add button (functionality to be added later)
-            // Add will persist nutrition information to database
+            // Add a button to add the item to the database with confirmation
             Button(
                 onClick = {
                     // Ensure the user is logged in before associating the food item with the user
                     currentUserID?.let { uid ->
+                        // Show a confirmation toast before adding the item
+                        Toast.makeText(context, "Adding food, please wait...", Toast.LENGTH_SHORT)
+                            .show()
+
                         // Create a map to associate the food item with the current user
                         val foodMap = mutableMapOf<String, Any>()
                         foodMap["userID"] = uid // Associate the food with the current user
@@ -77,6 +84,13 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
 
                         val newFoodRef = foodRef.push()
                         newFoodRef.setValue(foodMap) // Push the food item associated with the user to the database
+
+                        // Show a toast message confirming the addition
+                        Toast.makeText(context, "Food added successfully!", Toast.LENGTH_SHORT)
+                            .show()
+
+                        // Navigate back after successful addition
+                        navController.popBackStack()
                     }
                 },
                 modifier = Modifier
@@ -84,8 +98,8 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Green,
-                    contentColor = Color.White)
-
+                    contentColor = Color.White
+                )
             ) {
                 Text("Add")
             }
