@@ -1,6 +1,5 @@
 package com.example.ultimatetrolleyfitness.exercise
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +19,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,19 +45,8 @@ fun AddExercise(
     var currentStep by remember { mutableStateOf(0) }
     var sets by remember { mutableStateOf(0) }
     var reps by remember { mutableStateOf(0) }
+    var day by remember { mutableStateOf("") }
     var selectedDays by remember { mutableStateOf(emptyList<String>()) }
-
-//  Checking via Logcat if variables retain changed values
-    DisposableEffect(showDialogState.value) {
-        val logTag = "AddExercise"
-
-        onDispose {
-            Log.d(
-                logTag,
-                "Sets: $sets, Reps: $reps, Selected Days: $selectedDays"
-            )
-        }
-    }
 
     if (showDialogState.value) {
         Dialog(
@@ -68,8 +55,8 @@ fun AddExercise(
         ) {
             Card(
                 modifier = Modifier
-                    .width(300.dp) // Adjust width as needed
-                    .height(500.dp) // Adjust height as needed
+                    .width(300.dp)
+                    .height(500.dp)
                     .padding(16.dp),
                 shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp, bottomStart = 40.dp, bottomEnd = 40.dp),
                 colors = CardDefaults.cardColors(
@@ -78,17 +65,27 @@ fun AddExercise(
             ) {
                 when (currentStep) {
                     0 -> {
-                        SetAndRepsSelection {
-                            currentStep = 1
-                            sets =sets
-                            reps = reps
-                        }
+                        SetAndRepsSelection (
+                            sets = sets,
+                            onSetsChanged = { sets = it },
+                            reps = reps,
+                            onRepsChanged = { reps = it },
+                            onNextClicked = { currentStep = 1 }
+                        )
                     }
                     1 -> {
-                        DaySelection {
-                            selectedDays = selectedDays
-                            onCloseDialog()
-                        }
+                        DaySelection (
+                            day = day,
+                            onDaySelected = { selectedDay, isSelected ->
+                                val updatedList = if (isSelected) {
+                                    selectedDays + selectedDay
+                                } else {
+                                    selectedDays - selectedDay
+                                }
+                                selectedDays = updatedList
+                            },
+                            onCloseDialog = { showDialogState.value = false }
+                        )
                     }
                 }
             }
@@ -98,10 +95,11 @@ fun AddExercise(
 
 @Composable
 fun DaySelection(
+    day: String,
+    onDaySelected: (String, Boolean) -> Unit,
     onCloseDialog: () -> Unit
 ) {
     val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-    val selectedDays = remember { mutableStateOf(emptyList<String>()) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -115,6 +113,7 @@ fun DaySelection(
         }
         items(count = daysOfWeek.size) {index ->
             val day = daysOfWeek[index]
+            val checkedState = remember { mutableStateOf(false) }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -122,16 +121,16 @@ fun DaySelection(
                     .fillMaxWidth()
                     .padding(start = 68.dp)
             ) {
-                DaySelectionItem(
-                    day = day,
-                    onDaySelected = { selectedDay, isSelected ->
-                        val updatedList = if (isSelected) {
-                            selectedDays.value + selectedDay
-                        } else {
-                            selectedDays.value - selectedDay
-                        }
-                        selectedDays.value = updatedList
-                    }
+                Checkbox(
+                    checked = checkedState.value,
+                    onCheckedChange = { isChecked ->
+                        checkedState.value = isChecked
+                        onDaySelected(day, isChecked)
+                    },
+                )
+                Text(
+                    text = day,
+                    modifier = Modifier.padding(top = 14.dp)
                 )
             }
         }
@@ -145,34 +144,13 @@ fun DaySelection(
 }
 
 @Composable
-fun DaySelectionItem(
-    day: String,
-    onDaySelected: (String, Boolean) -> Unit
-) {
-    val checkedState = remember { mutableStateOf(false) }
-
-    Row() {
-        Checkbox(
-            checked = checkedState.value,
-            onCheckedChange = { isChecked ->
-                checkedState.value = isChecked
-                onDaySelected(day, isChecked)
-            },
-        )
-        Text(
-            text = day,
-            modifier = Modifier.padding(top = 14.dp)
-        )
-    }
-}
-
-@Composable
 fun SetAndRepsSelection(
+    sets: Int,
+    onSetsChanged: (Int) -> Unit,
+    reps: Int,
+    onRepsChanged: (Int) -> Unit,
     onNextClicked: () -> Unit
 ) {
-    var sets by remember { mutableStateOf(0) }
-    var reps by remember { mutableStateOf(0) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -183,60 +161,36 @@ fun SetAndRepsSelection(
         Text(text = "Enter Sets and Reps")
         Spacer(modifier = Modifier.height(96.dp))
 
-        SetAndRepsItem(
-            initialSets = sets,
-            initialReps = reps,
-            onSetsChanged = { sets = it },
-            onRepsChanged = { reps = it }
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Sets:")
+            Spacer(modifier = Modifier.width(8.dp))
+            TextField(
+                value = sets.toString(),
+                onValueChange = { onSetsChanged(it.toInt()) },
+                modifier = Modifier.width(50.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Reps:")
+            Spacer(modifier = Modifier.width(8.dp))
+            TextField(
+                value = reps.toString(),
+                onValueChange = { onRepsChanged(it.toInt()) },
+                modifier = Modifier.width(50.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(96.dp))
 
         Button(onClick = onNextClicked) {
             Text(text = "Next")
         }
-    }
-}
-
-@Composable
-fun SetAndRepsItem(
-    initialSets: Int,
-    initialReps: Int,
-    onSetsChanged: (Int) -> Unit,
-    onRepsChanged: (Int) -> Unit
-) {
-    var sets by remember { mutableStateOf(initialSets) }
-    var reps by remember { mutableStateOf(initialReps) }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "Sets:")
-        Spacer(modifier = Modifier.width(8.dp))
-        TextField(
-            value = sets.toString(),
-            onValueChange = { input ->
-                sets = input.toIntOrNull() ?: 0
-                onSetsChanged(sets)
-            },
-            modifier = Modifier.width(50.dp)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "Reps:")
-        Spacer(modifier = Modifier.width(8.dp))
-        TextField(
-            value = reps.toString(),
-            onValueChange = { input ->
-                reps = input.toIntOrNull() ?: 0
-                onRepsChanged(reps)
-            },
-            modifier = Modifier.width(50.dp)
-        )
     }
 }
