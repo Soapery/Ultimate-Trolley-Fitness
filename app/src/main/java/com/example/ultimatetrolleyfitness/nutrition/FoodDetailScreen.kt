@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.ultimatetrolleyfitness.db.DatabaseConnection
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.database
@@ -26,14 +27,7 @@ import com.google.firebase.database.database
  */
 
 // Firebase database reference
-val database = Firebase.database
-val foodRef = database.getReference("foods")
-
-val currentUser = FirebaseAuth.getInstance().currentUser
-val currentUserID = currentUser?.uid // Get the unique user ID
-
-
-
+val foodRef = DatabaseConnection("foods")
 
 @Composable
 fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
@@ -72,18 +66,18 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
             Button(
                 onClick = {
                     // Ensure the user is logged in before associating the food item with the user
-                    currentUserID?.let { uid ->
+                    // currentUserID?.let { uid ->
                         // Show a confirmation toast before adding the item
                         Toast.makeText(context, "Adding food, please wait...", Toast.LENGTH_SHORT)
                             .show()
 
                         // Create a map to associate the food item with the current user
-                        val foodMap = mutableMapOf<String, Any>()
-                        foodMap["userID"] = uid // Associate the food with the current user
-                        foodMap["foodDetails"] = foodItem.toMutableList() // Add food details
+                        // val foodMap = mutableMapOf<String, Any>()
+                        // foodMap["userID"] = uid // Associate the food with the current user
+                        // foodMap["foodDetails"] = foodItem.toMutableList() // Add food details
 
-                        val newFoodRef = foodRef.push()
-                        newFoodRef.setValue(foodMap) // Push the food item associated with the user to the database
+                        val newFoodRef = foodRef?.push()
+                        newFoodRef?.setValue(foodItem.toMutableList()) // Push the food item associated with the user to the database
 
                         // Show a toast message confirming the addition
                         Toast.makeText(context, "Food added successfully!", Toast.LENGTH_SHORT)
@@ -91,7 +85,7 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
 
                         // Navigate back after successful addition
                         navController.popBackStack()
-                    }
+                    // }
                 },
                 modifier = Modifier
                     .padding(top = 16.dp)
