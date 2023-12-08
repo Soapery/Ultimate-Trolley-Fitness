@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,9 +28,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.ultimatetrolleyfitness.db.DatabaseConnection
+import com.example.ultimatetrolleyfitness.nutrition.foodRef
 
 @Composable
 fun AddExercise(
@@ -41,12 +45,14 @@ fun AddExercise(
     instructions: String,
     showDialogState: MutableState<Boolean>,
     onCloseDialog: () -> Unit
-){
+) {
     var currentStep by remember { mutableStateOf(0) }
     var sets by remember { mutableStateOf(0) }
     var reps by remember { mutableStateOf(0) }
     var day by remember { mutableStateOf("") }
     var selectedDays by remember { mutableStateOf(emptyList<String>()) }
+    val exerciseRef = DatabaseConnection("exercises")
+
 
     if (showDialogState.value) {
         Dialog(
@@ -58,14 +64,19 @@ fun AddExercise(
                     .width(300.dp)
                     .height(500.dp)
                     .padding(16.dp),
-                shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp, bottomStart = 40.dp, bottomEnd = 40.dp),
+                shape = RoundedCornerShape(
+                    topStart = 40.dp,
+                    topEnd = 40.dp,
+                    bottomStart = 40.dp,
+                    bottomEnd = 40.dp
+                ),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 )
             ) {
                 when (currentStep) {
                     0 -> {
-                        SetAndRepsSelection (
+                        SetAndRepsSelection(
                             sets = sets,
                             onSetsChanged = { sets = it },
                             reps = reps,
@@ -73,8 +84,9 @@ fun AddExercise(
                             onNextClicked = { currentStep = 1 }
                         )
                     }
+
                     1 -> {
-                        DaySelection (
+                        DaySelection(
                             day = day,
                             onDaySelected = { selectedDay, isSelected ->
                                 val updatedList = if (isSelected) {
@@ -83,6 +95,24 @@ fun AddExercise(
                                     selectedDays - selectedDay
                                 }
                                 selectedDays = updatedList
+                            },
+                            onExercideAdded = {
+                                val exerciseMap: HashMap<String, Any?> = hashMapOf(
+                                    "name" to name,
+                                    "type" to type,
+                                    "muscle" to muscle,
+                                    "equipment" to equipment,
+                                    "difficulty" to difficulty,
+                                    "instructions" to instructions,
+                                    "sets" to sets,
+                                    "reps" to reps,
+                                    "selectedDays" to selectedDays
+                                )
+
+                                val newExerciseRef = exerciseRef?.push()
+                                newExerciseRef?.setValue(exerciseMap)
+
+                                showDialogState.value = false
                             },
                             onCloseDialog = { showDialogState.value = false }
                         )
@@ -97,9 +127,11 @@ fun AddExercise(
 fun DaySelection(
     day: String,
     onDaySelected: (String, Boolean) -> Unit,
-    onCloseDialog: () -> Unit
+    onCloseDialog: () -> Unit,
+    onExercideAdded: () -> Unit
 ) {
-    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    val daysOfWeek =
+        listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -111,7 +143,7 @@ fun DaySelection(
             Text(text = "Select Days")
             Spacer(modifier = Modifier.height(16.dp))
         }
-        items(count = daysOfWeek.size) {index ->
+        items(count = daysOfWeek.size) { index ->
             val day = daysOfWeek[index]
             val checkedState = remember { mutableStateOf(false) }
             Row(
@@ -136,7 +168,7 @@ fun DaySelection(
         }
         item {
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onCloseDialog) {
+            Button(onClick = onExercideAdded) {
                 Text(text = "Add")
             }
         }
@@ -151,6 +183,7 @@ fun SetAndRepsSelection(
     onRepsChanged: (Int) -> Unit,
     onNextClicked: () -> Unit
 ) {
+    val pattern = remember { Regex("^[0-9]*\$") }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,7 +201,12 @@ fun SetAndRepsSelection(
             Spacer(modifier = Modifier.width(8.dp))
             TextField(
                 value = sets.toString(),
-                onValueChange = { onSetsChanged(it.toInt()) },
+                onValueChange = {
+                    if (it.isNotEmpty() && it.toIntOrNull() != null) {
+                        onSetsChanged(it.toInt())
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(50.dp)
             )
         }
@@ -182,7 +220,12 @@ fun SetAndRepsSelection(
             Spacer(modifier = Modifier.width(8.dp))
             TextField(
                 value = reps.toString(),
-                onValueChange = { onRepsChanged(it.toInt()) },
+                onValueChange = {
+                    if (it.isNotEmpty() && it.toIntOrNull() != null) {
+                        onRepsChanged(it.toInt())
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(50.dp)
             )
         }
