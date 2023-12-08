@@ -10,7 +10,7 @@ fun DatabaseConnection(pathString: String): DatabaseReference? {
 
     val currentUser = FirebaseAuth.getInstance().currentUser
     val currentUserID = currentUser?.uid // Get the unique user ID
-    val foodRef = currentUserID?.let { database.getReference("users").child(it).child("foods") }
+    val ref = currentUserID?.let { database.getReference("users").child(it).child(pathString) }
 
-    return foodRef
+    return ref
 }
