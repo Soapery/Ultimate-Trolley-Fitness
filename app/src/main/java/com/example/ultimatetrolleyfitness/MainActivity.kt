@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ultimatetrolleyfitness.db.DatabaseConnection
 import com.example.ultimatetrolleyfitness.exercise.Exercise
 import com.example.ultimatetrolleyfitness.exercise.ExerciseDetailSheet
 import com.example.ultimatetrolleyfitness.exercise.myAPI
@@ -333,25 +334,30 @@ fun MyFoodContent() {
     SideEffect {
         if (currentUserID != null) {
             val database = Firebase.database
-            val foodRef = database.getReference("foods")
+            val foodRef = DatabaseConnection("foods")
 
-            foodRef.orderByChild("userID").equalTo(currentUserID)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        val foodsList = mutableListOf<Array<String>>()
-                        for (snapshot in dataSnapshot.children) {
-                            val foodDetails = snapshot.child("foodDetails").value as? List<String>
-                            foodDetails?.let {
-                                foodsList.add(it.toTypedArray())
-                            }
+            foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val foodsList = mutableListOf<Array<String>>()
+                    val children = snapshot.children
+                    Log.d("Food list", children.toString())
+
+                    children.forEach() { it ->
+                        //Log.d("Child", it)
+                        val foodDetails = it.value as? List<String>
+                        foodDetails?.let {
+                            foodsList.add(it.toTypedArray())
                         }
-                        foodsState = foodsList
                     }
+                    foodsState = foodsList
+                    Log.d("Food list", foodsList.toString())
 
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        // Handle any errors that may occur while fetching data
-                    }
-                })
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle any errors that may occur while fetching data
+                }
+            })
         }
     }
 
@@ -361,6 +367,7 @@ fun MyFoodContent() {
         LazyColumn {
             items(foodsState) { foodItem ->
                 FoodItemCard(foodItem)
+                Log.d("Food data", foodItem.contentToString())
             }
         }
     }
@@ -398,25 +405,43 @@ fun FoodItemCard(foodItem: Array<String>) {
                 Button(
                     onClick = {
                         val database = Firebase.database
-                        val foodRef = database.getReference("foods")
+                        val foodRef = DatabaseConnection("foods")
 
-                        // Find and remove the corresponding record from the database
-                        foodRef.orderByChild("userID").equalTo(currentUserID)
-                            .addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    for (snapshot in dataSnapshot.children) {
-                                        val foodDetails = snapshot.child("foodDetails").value as? List<String>
-                                        if (foodDetails != null && foodDetails.toTypedArray() contentDeepEquals foodItem) {
-                                            snapshot.ref.removeValue() // Remove the item from the database
-                                            break
-                                        }
+//                        // Find and remove the corresponding record from the database
+//                        foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+//                            override fun onDataChange(snapshot: DataSnapshot) {
+//                                val foodsList = mutableListOf<Array<String>>()
+//                                val children = snapshot.children
+//
+//                                children.forEach() { it ->
+//                                    val foodDetails = it.value as? List<String>
+//                                    foodDetails?.let {
+//                                        foodsList.add(it.toTypedArray())
+//                                    }
+//                                }
+//                                foodsState = foodsList
+//                            }
+//
+//                            override fun onCancelled(databaseError: DatabaseError) {
+//                                // Handle any errors that may occur while fetching data
+//                            }
+//                        })
+
+                        foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                val children = snapshot.children
+                                children.forEach() { it ->
+                                    val foodDetails = it.value as? List<String>
+                                    if (foodDetails != null && foodDetails.toTypedArray() contentDeepEquals foodItem) {
+                                        snapshot.ref.removeValue() // Remove the item from the database
                                     }
                                 }
+                            }
 
-                                override fun onCancelled(databaseError: DatabaseError) {
-                                    // Handle any errors that may occur while removing data
-                                }
-                            })
+                            override fun onCancelled(databaseError: DatabaseError) {
+                                // Handle any errors that may occur while removing data
+                            }
+                        })
                     },
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
