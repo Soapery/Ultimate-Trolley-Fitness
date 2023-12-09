@@ -4,7 +4,6 @@ import StepCounterHelper
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -16,22 +15,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -44,7 +40,6 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,10 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -66,6 +59,7 @@ import com.example.ultimatetrolleyfitness.db.DatabaseConnection
 import com.example.ultimatetrolleyfitness.exercise.Exercise
 import com.example.ultimatetrolleyfitness.exercise.ExerciseDetailSheet
 import com.example.ultimatetrolleyfitness.exercise.myAPI
+import com.example.ultimatetrolleyfitness.home.DaysExercises
 import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
 import com.example.ultimatetrolleyfitness.nutrition.FoodAttribute
 import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
@@ -107,16 +101,16 @@ class MainActivity : ComponentActivity() {
             NutritionData.readNutrientsCSV(this@MainActivity)
 
             // Set up your navigation host with destinations
-            NavHost(navController = navController, startDestination = "main") {
-                composable("main") {
-                    // Your main content goes here
+            NavHost(navController = navController, startDestination = "com/example/ultimatetrolleyfitness/home") {
+//                composable("main") {
+//                    // Your main content goes here
+//                    BottomNav(navController = navController) {
+//                        HomeScreen()
+//                    }
+//                }
+                composable("com/example/ultimatetrolleyfitness/home") {
                     BottomNav(navController = navController) {
-                        HomeScreen()
-                    }
-                }
-                composable("home") {
-                    BottomNav(navController = navController) {
-                        HomeScreen()
+                        HomeScreen(navController = navController)
                     }
                 }
                 composable("nutrition") {
@@ -147,7 +141,17 @@ class MainActivity : ComponentActivity() {
                         Text("Food item not found")
                     }
                 }
+                composable("plan/{day}") {backStackEntry ->
+                    val day = backStackEntry.arguments?.getString("day")
 
+                    if (day != null) {
+                        BottomNav(navController = navController) {
+                            DaysExercises(day)
+                        }
+                    } else {
+                        Text(text = "Exercises for $day not found.")
+                    }
+                }
             }
         }
     }
@@ -204,7 +208,7 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0)}
     
     Column(
@@ -229,12 +233,37 @@ fun HomeScreen() {
         
         when (selectedTabIndex) {
             0 -> Text(text = "Progress Content")
-            1 -> Text(text= "Plans")
+            1 -> PlanContent(navController)
         }
     }
 }
 
+@Composable
+fun PlanContent(navController: NavController) {
+    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(count = daysOfWeek.size) {index ->
+            val day = daysOfWeek[index]
+            ClickableDayCard(day = day, navController = navController)
+        }
+    }
+}
+
+@Composable
+fun ClickableDayCard(day: String, navController: NavController) {
+    Card (
+        modifier = Modifier
+            .width(300.dp)
+            .height(300.dp)
+            .padding(16.dp)
+            .clickable { navController.navigate("plan/$day") },
+    ) {
+        Text(text = "$day")
+    }
+}
 
 @Composable
 fun NutritionScreen(navController: NavController) {
@@ -418,8 +447,6 @@ fun FoodItemCard(foodItem: Array<String>) {
     }
 }
 
-
-
 @Composable
 fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
     Box(
@@ -489,24 +516,6 @@ fun WorkoutScreen(
             1 -> FavoritesTabContent()
         }
     }
-//    Column {
-//        WorkoutSearchBar(
-//            exerciseName = exerciseName,
-//            onExerciseNameChange = { exerciseName = it },
-//            selectedType = selectedType,
-//            onSelectedTypeChange = { selectedType = it },
-//            selectedMuscle = selectedMuscle,
-//            onSelectedMuscleChange = { selectedMuscle = it },
-//            selectedDifficulty = selectedDifficulty,
-//            onSelectedDifficultyChange = { selectedDifficulty = it },
-//            onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
-//                fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
-//            }
-//        )
-//        Spacer(modifier = Modifier.weight(1f))
-//        DisplayJsonData(apiData)
-//    }
-
 }
 
 @Composable
@@ -591,7 +600,6 @@ fun DisplayJsonData(data: List<Exercise>?) {
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -760,35 +768,3 @@ fun WorkoutSearchBar(
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    UltimateTrolleyFitnessTheme {
-//        Greeting("Android")
-//    }
-//}
-
-// Initialize StepTrackerPermissionManager
-//        stepTrackerPermissionManager = StepCounterHelper(this) { stepCount ->
-//            // Update UI or perform actions based on step count
-//            updateUI(stepCount)
-//        }
-
-// Function to update UI with step count
-
-
-//
-//    private fun updateUI(stepCount: Int) {
-//        val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-//        val progress_circular = findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(R.id.progress_circular)
-//
-//        // Update UI elements based on step count
-//        tv_stepsTaken.text = stepCount.toString()
-//        progress_circular.setProgressWithAnimation(stepCount.toFloat())
-//    }
-//}
-
-
-

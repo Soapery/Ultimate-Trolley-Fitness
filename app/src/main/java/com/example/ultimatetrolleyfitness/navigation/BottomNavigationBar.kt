@@ -57,7 +57,7 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier = Modif
 private fun getRouteForIndex(index: Int): String {
     return when (index) {
         0 -> "nutrition"
-        1 -> "home"
+        1 -> "com/example/ultimatetrolleyfitness/home"
         2 -> "workout"
         else -> ""
     }
