@@ -256,9 +256,9 @@ fun PlanContent(navController: NavController) {
 fun ClickableDayCard(day: String, navController: NavController) {
     Card (
         modifier = Modifier
-            .width(300.dp)
-            .height(300.dp)
-            .padding(16.dp)
+            .fillMaxWidth()
+            .height(150.dp)
+            .padding(8.dp)
             .clickable { navController.navigate("plan/$day") },
     ) {
         Text(text = "$day")
