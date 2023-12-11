@@ -330,10 +330,9 @@ fun MyFoodContent() {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
     var foodsState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
 
-    // Fetch user's food data from Firebase Realtime Database
-    SideEffect {
+    // Function to fetch user's food data from Firebase Realtime Database
+    fun fetchUserFoodData() {
         if (currentUserID != null) {
-            val database = Firebase.database
             val foodRef = DatabaseConnection("foods")
 
             foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -342,18 +341,15 @@ fun MyFoodContent() {
                     val children = snapshot.children
 
                     children.forEach() { it ->
-                        //Log.d("Child", it)
                         val foodDetails = it.value as? MutableList<String>
                         if (foodDetails != null) {
                             it.key?.let { it1 -> foodDetails.add(it1) }
                         }
                         foodDetails?.let {
                             foodsList.add(it.toTypedArray())
-
                         }
                     }
                     foodsState = foodsList
-
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
@@ -363,12 +359,16 @@ fun MyFoodContent() {
         }
     }
 
+    // Fetch user's food data initially
+    LaunchedEffect(Unit) {
+        fetchUserFoodData()
+    }
+
     // Display user's food data
     Column {
-        Text("My Uploaded Food Items") // Header for the user's food items
         LazyColumn {
             items(foodsState) { foodItem ->
-                FoodItemCard(foodItem)
+                FoodItemCard(foodItem, ::fetchUserFoodData)
                 Log.d("Food data", foodItem.contentToString())
             }
         }
@@ -376,7 +376,7 @@ fun MyFoodContent() {
 }
 
 @Composable
-fun FoodItemCard(foodItem: Array<String>) {
+fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
     var key by remember { mutableStateOf<String>("") }
 
@@ -388,18 +388,15 @@ fun FoodItemCard(foodItem: Array<String>) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Define the attribute names corresponding to the CSV fields
             val attributeNames = listOf(
                 "Name", "Measure", "Grams", "Calories",
                 "Protein", "Fat", "Saturated Fats", "Fiber", "Carbs", "Category"
             )
 
             foodItem.forEachIndexed { index, value ->
-                // Use attribute names defined above
                 if (index < attributeNames.size) {
                     FoodAttribute(attribute = attributeNames[index], value = value)
                 } else {
-                    //FoodAttribute(attribute = "Attribute ${index + 1}", value = value)
                     key = value
                     Log.d("Key", key)
                 }
@@ -408,7 +405,10 @@ fun FoodItemCard(foodItem: Array<String>) {
             // Add a button to remove the item from the database
             if (currentUserID != null) {
                 Button(
-                    onClick = { DatabaseConnection("foods")?.child(key)?.removeValue() },
+                    onClick = {
+                        DatabaseConnection("foods")?.child(key)?.removeValue()
+                        fetchFunction() // Call the fetch function after removal
+                    },
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Text("Remove")
