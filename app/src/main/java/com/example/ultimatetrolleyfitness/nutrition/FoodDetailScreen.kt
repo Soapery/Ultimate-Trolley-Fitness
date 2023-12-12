@@ -25,10 +25,9 @@ import com.google.firebase.database.database
 /**
  * Detailed views for each food item displayed by the CSV.
  */
-
 // Firebase database reference
 val foodRef = DatabaseConnection("foods")
-
+// Detailed food screen displaying information of the selected clickable food item
 @Composable
 fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
     Card(
@@ -65,16 +64,10 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
             // Add a button to add the item to the database with confirmation
             Button(
                 onClick = {
-                    // Ensure the user is logged in before associating the food item with the user
-                    // currentUserID?.let { uid ->
                         // Show a confirmation toast before adding the item
                         Toast.makeText(context, "Adding food, please wait...", Toast.LENGTH_SHORT)
                             .show()
 
-                        // Create a map to associate the food item with the current user
-                        // val foodMap = mutableMapOf<String, Any>()
-                        // foodMap["userID"] = uid // Associate the food with the current user
-                        // foodMap["foodDetails"] = foodItem.toMutableList() // Add food details
 
                         val newFoodRef = foodRef?.push()
                         newFoodRef?.setValue(foodItem.toMutableList()) // Push the food item associated with the user to the database
@@ -102,8 +95,12 @@ fun FoodDetailScreen(foodItem: Array<String>, navController: NavController) {
 }
 
 
+/**
+ * Food attributes displayed in a dolumn on the page
+ */
 @Composable
 fun FoodAttribute(attribute: String, value: String) {
+    // Column to display food attribute and its value
     Column(
         modifier = Modifier
             .fillMaxWidth()

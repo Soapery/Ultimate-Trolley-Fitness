@@ -64,6 +64,9 @@ fun DaysExercises(day: String) {
     }
 }
 
+/**
+ * Composable to create a card to display the exercise data
+ */
 @Composable
 fun ExerciseCard(exercise: Map<String, Any>) {
     Card(
