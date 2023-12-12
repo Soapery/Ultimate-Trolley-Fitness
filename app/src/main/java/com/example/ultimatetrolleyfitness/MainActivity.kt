@@ -80,17 +80,22 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-
+/**
+ * The main activity managing the application's components and navigation.
+ */
 class MainActivity : ComponentActivity() {
     private var apiData by mutableStateOf<List<Exercise>?>(null)
     private lateinit var stepTrackerPermissionManager: StepCounterHelper
     lateinit var auth: FirebaseAuth
 
+    /**
+     * Called when the activity is starting.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
-        fetchDataFromApi("", "", "", "")
+        fetchDataFromApi("", "", "", "") // Fetch initial data from the API
 
         // Commented out below for testing login form.
         setContentView(R.layout.activity_main)
@@ -107,7 +112,6 @@ class MainActivity : ComponentActivity() {
 
             // Set up your navigation host with destinations
             NavHost(navController = navController, startDestination = "com/example/ultimatetrolleyfitness/home") {
-
                 // Navigation setup for the "home" destination
                 composable("com/example/ultimatetrolleyfitness/home") {
                     BottomNav(navController = navController) {
@@ -218,7 +222,6 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
         ) {
             content()
         }
-
         // Bottom navigation bar
         BottomNavigationBar(navController = navController)
     }
@@ -231,7 +234,6 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current // Get the context using LocalContext
-
     var selectedTabIndex by remember { mutableStateOf(0)}
 
     Column(
@@ -261,6 +263,9 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+/**
+ * Composable for displaying progress-related content.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProgressContent(context: Context) { // Pass the Context to access SharedPreferences
@@ -360,7 +365,9 @@ fun ProgressContent(context: Context) { // Pass the Context to access SharedPref
     }
 }
 
-
+/**
+ * Composable for displaying planned exercises content.
+ */
 @Composable
 fun PlanContent(navController: NavController) {
     // List of days of the week
@@ -377,7 +384,9 @@ fun PlanContent(navController: NavController) {
     }
 }
 
-
+/**
+ * Composable for creating a clickable day card to navigate to exercises planned for that day.
+ */
 @Composable
 fun ClickableDayCard(day: String, navController: NavController) {
     Card (
@@ -391,6 +400,9 @@ fun ClickableDayCard(day: String, navController: NavController) {
     }
 }
 
+/**
+ * Composable function displaying nutrition-related content.
+ */
 @Composable
 fun NutritionScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -426,6 +438,9 @@ fun NutritionScreen(navController: NavController) {
     }
 }
 
+/**
+ * Composable function displaying browse nutrition content.
+ */
 @Composable
 fun BrowseNutritionContent(navController: NavController) {
     // State to hold the search text and filtered data

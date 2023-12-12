@@ -28,6 +28,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 
+/**
+ * Composable function to display exercises planned for a specific day.
+ *
+ * @param day The specific day for which exercises are displayed.
+ */
 @Composable
 fun DaysExercises(day: String) {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
@@ -62,6 +67,7 @@ fun DaysExercises(day: String) {
         })
     }
 
+    // Displays a list of exercises for the specified day
     LazyColumn() {
         items(exercisesForDay.value.entries.toList()) { (exerciseKey, exercise) ->
             ExerciseCard(exercise, day, exerciseKey) { key ->
@@ -75,10 +81,16 @@ fun DaysExercises(day: String) {
 }
 
 /**
- * Composable to create a card to display the exercise data
+ * Composable function to create a card displaying exercise data.
+ *
+ * @param exercise The exercise data to display.
+ * @param day The specific day for which the exercise is planned.
+ * @param exerciseKey The key identifying the exercise in the database.
+ * @param onRemoveClicked Callback to handle exercise removal.
  */
 @Composable
 fun ExerciseCard(exercise: Map<String, Any>, day: String, exerciseKey: String, onRemoveClicked: (String) -> Unit) {
+    // Displays exercise details in a card layout
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,6 +99,7 @@ fun ExerciseCard(exercise: Map<String, Any>, day: String, exerciseKey: String, o
         Column(
             modifier = Modifier.padding(8.dp)
         ) {
+            // Displays exercise information
             Text("Name: ${exercise["name"]}")
             Text("Sets: ${exercise["sets"]}")
             Text("Reps: ${exercise["reps"]}")
@@ -98,6 +111,7 @@ fun ExerciseCard(exercise: Map<String, Any>, day: String, exerciseKey: String, o
             Spacer(modifier = Modifier.padding(16.dp))
             Text("Instructions: ${exercise["instructions"]}")
 
+            // Allows removal of an exercise from the list
             IconButton(
                 onClick = { onRemoveClicked(exerciseKey) },
                 modifier = Modifier
@@ -110,10 +124,15 @@ fun ExerciseCard(exercise: Map<String, Any>, day: String, exerciseKey: String, o
     }
 }
 
+/**
+ * Removes an exercise from the specified day's plan.
+ *
+ * @param exerciseKey The key identifying the exercise in the database.
+ * @param day The specific day for which the exercise is planned.
+ * @param onExerciseRemoved Callback to handle the removal of an exercise.
+ */
 fun removeExercise(exerciseKey: String, day: String, onExerciseRemoved: () -> Unit) {
     val exerciseRef = DatabaseConnection("exercises")?.child(exerciseKey)?.child("selectedDays")
-
-    Log.d("Key", exerciseKey ?: "Key is null")
 
     exerciseRef?.addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
