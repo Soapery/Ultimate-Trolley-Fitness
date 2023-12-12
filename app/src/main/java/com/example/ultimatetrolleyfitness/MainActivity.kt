@@ -1,6 +1,7 @@
 package com.example.ultimatetrolleyfitness
 
 import StepCounterHelper
+import android.hardware.Sensor
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -50,6 +51,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -74,6 +76,10 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import com.mutualmobile.composesensors.SensorDelay
+import com.mutualmobile.composesensors.rememberAccelerometerSensorState
+import com.mutualmobile.composesensors.rememberStepCounterSensorState
+import com.mutualmobile.composesensors.rememberStepDetectorSensorState
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -81,6 +87,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.math.sqrt
 
 
 class MainActivity : ComponentActivity() {
@@ -266,11 +273,11 @@ fun HomeScreen(navController: NavController) {
 fun ProgressContent() {
     val dayOfWeek = LocalDate.now().dayOfWeek
     val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
-
-
     val exerciseRef = DatabaseConnection("exercises")
     val exerciseNames = remember { mutableStateListOf<String>() }
-
+    var magnitudePreviousStep = 0.0
+    var totalSteps = 0f
+    var previousTotalSteps = 0f
 
     LaunchedEffect(exerciseRef) {
         exerciseRef?.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -295,6 +302,39 @@ fun ProgressContent() {
             }
         })
     }
+
+    // Attempt to reimplement step-counter using ComposeSensors module
+    // Couldn't get it functional prior to project completion unfortunately.
+//    val stepCounterState = rememberStepCounterSensorState()
+//    val stepDetectorState = rememberStepDetectorSensorState()
+//    val accelerometerState = rememberAccelerometerSensorState()
+//
+//    if (!accelerometerState.isAvailable) {
+//        val xAccel = accelerometerState.xForce
+//        val yAccel= accelerometerState.yForce
+//        val zAccel= accelerometerState.zForce
+//        val magnitude: Double =
+//            sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
+//
+//        val magnitudeDelta: Double = magnitude - magnitudePreviousStep
+//        magnitudePreviousStep = magnitude
+//
+//        if (magnitudeDelta > 6) {
+//            totalSteps++
+//        }
+//
+//        val step: Int = totalSteps.toInt()
+//
+//        // If the target device has a standard step counter
+//    } else {
+//        if(stepCounterState.isAvailable){
+//            totalSteps = stepCounterState.stepCount
+//            val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
+//        } else {
+//            totalSteps = stepDetectorState.stepCount
+//        }
+//
+//    }
 
     Column {
         exerciseNames.forEach { name ->
