@@ -524,14 +524,14 @@ fun BrowseTabContent(apiData: List<Exercise>?) {
     if (apiData.isNullOrEmpty()) {
         Text(text = "No exercises were found.")
     } else {
-        DisplayJsonData(apiData)
+        DisplayExerciseData(apiData)
     }
 }
 
 @Composable
 fun FavoritesTabContent() {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
-    var favoritesState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
+    var favoritesState by remember { mutableStateOf<List<Exercise>>(emptyList()) }
 
     fun fetchUserFavorites() {
         if (currentUserID != null) {
@@ -539,17 +539,18 @@ fun FavoritesTabContent() {
 
             favoritesRef?.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val favoritesList = mutableListOf<Array<String>>()
+                    val favoritesList = mutableListOf<Exercise>()
                     val children = snapshot.children
-
+                    var id = 1
                     children.forEach() { it ->
-                        val favoritesDetails = it.value as? MutableList<String>
-                        if (favoritesDetails != null) {
-                            it.key?.let { it1 -> favoritesDetails.add(it1) }
-                        }
-                        favoritesDetails?.let {
-                            favoritesList.add(it.toTypedArray())
-                        }
+                        val name = it.child("name").value.toString()
+                        val type = it.child("type").value.toString()
+                        val muscle = it.child("muscle").value.toString()
+                        val equipment = it.child("equipment").value.toString()
+                        val difficulty = it.child("difficulty").value.toString()
+                        val instructions = it.child("instructions").value.toString()
+                        val exercise = Exercise(id, name, type, muscle, equipment, difficulty, instructions)
+                        favoritesList.add(exercise)
                     }
                     favoritesState = favoritesList
                 }
@@ -567,21 +568,11 @@ fun FavoritesTabContent() {
         Log.d("exercise data", favoritesState.toString())
     }
 
-    // Display user's food data
-    Column {
-        LazyColumn {
-//            items(favoritesState) { favoriteWorkout ->
-//                FoodItemCard(favoriteWorkout, ::fetchUserFavorites)
-//                Log.d("Food data", favoriteWorkout.contentToString())
-//            }
-        }
-    }
-
-    Text(text = "Favorites Tab Content")
+    DisplayExerciseData(favoritesState)
 }
 
 @Composable
-fun DisplayJsonData(data: List<Exercise>?) {
+fun DisplayExerciseData(data: List<Exercise>?) {
     LazyColumn {
         items(data ?: emptyList()) { exercise ->
             if (exercise.name.isNotEmpty()) {
@@ -597,7 +588,6 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 var isFavorite by remember {
                     mutableStateOf(false)
                 }
-
 
                 favoritesRef?.addListenerForSingleValueEvent(object: ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -628,22 +618,6 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 }
 
                 ListItem(
-//                    leadingContent = {
-//                        IconButton(onClick = {buttonState.value = !buttonState.value }) { // Should add to users workout plan
-//                            Icon(
-//                                imageVector = if (buttonState.value) {
-//                                    Icons.Default.Favorite
-//                                } else {
-//                                    Icons.Default.FavoriteBorder
-//                                },
-//                                contentDescription = if (buttonState.value) {
-//                                    "Remove from Favorites button"
-//                                } else {
-//                                    "Add to favorites button"
-//                                }
-//                            )
-//                        }
-//                    },
                     headlineContent = {
                         Text(text = name.replaceFirstChar { it.uppercase() })
                     },
@@ -666,6 +640,13 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 Text(text = "No exercises were found.")
             }
         }
+    }
+}
+
+@Composable
+fun ExerciseItem() {
+    LazyColumn {
+
     }
 }
 
