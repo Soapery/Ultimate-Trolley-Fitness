@@ -75,7 +75,9 @@ import com.google.firebase.database.database
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
 
 class MainActivity : ComponentActivity() {
@@ -224,6 +226,7 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 /**
  * Homescreen view displaying either progress or your plan tabs
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0)}
@@ -255,9 +258,13 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProgressContent() {
+    val dayOfWeek = LocalDate.now().dayOfWeek
+    val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
 
+    Text(text = "Today is $dayOfWeekString")
 }
 
 
