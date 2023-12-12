@@ -1,6 +1,7 @@
 package com.example.ultimatetrolleyfitness
 
 import StepCounterHelper
+import android.content.Context
 import android.hardware.Sensor
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -55,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -239,8 +242,10 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current // Get the context using LocalContext
+
     var selectedTabIndex by remember { mutableStateOf(0)}
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -258,11 +263,11 @@ fun HomeScreen(navController: NavController) {
                 text = { Text("Your Plan") },
                 selected = selectedTabIndex == 1,
                 onClick = { selectedTabIndex = 1 }
-            ) 
+            )
         }
-        
+
         when (selectedTabIndex) {
-            0 -> ProgressContent()
+            0 -> ProgressContent(context = context) // Pass the context to ProgressContent
             1 -> PlanContent(navController)
         }
     }
@@ -270,11 +275,29 @@ fun HomeScreen(navController: NavController) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProgressContent() {
+fun ProgressContent(context: Context) { // Pass the Context to access SharedPreferences
+
+    // Define a name for the SharedPreferences file
+    val CHECKBOX_PREFS = "checkbox_prefs"
+
+    // Function to save checkbox state
+    fun saveCheckboxState(index: Int, isChecked: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(CHECKBOX_PREFS, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putBoolean("checkbox_$index", isChecked).apply()
+    }
+
+    // Function to load checkbox state
+    fun loadCheckboxState(index: Int): Boolean {
+        val sharedPreferences = context.getSharedPreferences(CHECKBOX_PREFS, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("checkbox_$index", false)
+    }
+
     val dayOfWeek = LocalDate.now().dayOfWeek
     val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+
     val exerciseRef = DatabaseConnection("exercises")
     val exerciseNames = remember { mutableStateListOf<String>() }
+
     var magnitudePreviousStep = 0.0
     var totalSteps = 0f
     var previousTotalSteps = 0f
@@ -336,9 +359,44 @@ fun ProgressContent() {
 //
 //    }
 
+    // Mutable list to hold the checked state for each exercise
+    val checkedExerciseStates = remember { mutableStateListOf<Boolean>() }
+
+    // Initialize the checked states based on the number of exercises
+    if (checkedExerciseStates.isEmpty()) {
+        repeat(exerciseNames.size) {
+            checkedExerciseStates.add(loadCheckboxState(it))
+        }
+    }
+
     Column {
-        exerciseNames.forEach { name ->
-            Text(text = name)
+        exerciseNames.forEachIndexed { index, name ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Checkbox(
+                    checked = checkedExerciseStates[index],
+                    onCheckedChange = {
+                        // Update the checked state for the clicked exercise
+                        checkedExerciseStates[index] = it
+                        // Save the state to SharedPreferences
+                        saveCheckboxState(index, it)
+                    },
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = name,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
         }
     }
 }
