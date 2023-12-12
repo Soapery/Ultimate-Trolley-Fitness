@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,7 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +54,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -71,17 +68,14 @@ import com.example.ultimatetrolleyfitness.nutrition.FoodAttribute
 import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
 import com.example.ultimatetrolleyfitness.nutrition.NutritionData
 import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -270,9 +264,12 @@ fun HomeScreen(navController: NavController) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProgressContent(context: Context) { // Pass the Context to access SharedPreferences
-
-    // Define a name for the SharedPreferences file
-    val CHECKBOX_PREFS = "checkbox_prefs"
+    val dayOfWeek = LocalDate.now().dayOfWeek
+    val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val exerciseRef = DatabaseConnection("exercises")
+    val exerciseNames = remember { mutableStateListOf<String>() }
+    val checkedExerciseStates = remember { mutableStateListOf<Boolean>() } // Mutable list to hold the checked state for each exercise
+    val CHECKBOX_PREFS = "checkbox_prefs" // Define a name for the SharedPreferences file
 
     // Function to save checkbox state
     fun saveCheckboxState(index: Int, isChecked: Boolean) {
@@ -285,12 +282,6 @@ fun ProgressContent(context: Context) { // Pass the Context to access SharedPref
         val sharedPreferences = context.getSharedPreferences(CHECKBOX_PREFS, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean("checkbox_$index", false)
     }
-
-    val dayOfWeek = LocalDate.now().dayOfWeek
-    val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
-
-    val exerciseRef = DatabaseConnection("exercises")
-    val exerciseNames = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(exerciseRef) {
         exerciseRef?.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -316,9 +307,6 @@ fun ProgressContent(context: Context) { // Pass the Context to access SharedPref
         })
     }
 
-    // Mutable list to hold the checked state for each exercise
-    val checkedExerciseStates = remember { mutableStateListOf<Boolean>() }
-
     // Initialize the checked states based on the number of exercises
     if (checkedExerciseStates.isEmpty()) {
         repeat(exerciseNames.size) {
@@ -326,32 +314,46 @@ fun ProgressContent(context: Context) { // Pass the Context to access SharedPref
         }
     }
 
-    Column {
-        exerciseNames.forEachIndexed { index, name ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(8.dp)
+    ) {
+        Column (
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "$dayOfWeekString",
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                Checkbox(
-                    checked = checkedExerciseStates[index],
-                    onCheckedChange = {
-                        // Update the checked state for the clicked exercise
-                        checkedExerciseStates[index] = it
-                        // Save the state to SharedPreferences
-                        saveCheckboxState(index, it)
-                    },
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Text(
-                        text = name,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(8.dp)
-                    )
+                items(count = exerciseNames.size) {index ->
+                    val name = exerciseNames[index]
+
+                    Row (
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = checkedExerciseStates[index],
+                            onCheckedChange = {
+                                // Update the checked state for the clicked exercise
+                                checkedExerciseStates[index] = it
+                                // Save the state to SharedPreferences
+                                saveCheckboxState(index, it)
+                            },
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = "$name",
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
                 }
             }
         }
