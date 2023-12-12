@@ -641,7 +641,7 @@ fun FavoritesTabContent() {
 }
 
 /**
- * Displays workout related Json Data.
+ * Displays workout related data.
  */
 @Composable
 fun DisplayExerciseData(data: List<Exercise>?) {
