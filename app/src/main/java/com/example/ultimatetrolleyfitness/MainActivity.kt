@@ -1,234 +1,1023 @@
 package com.example.ultimatetrolleyfitness
 
+import StepCounterHelper
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.TextView
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.example.ultimatetrolleyfitness.ui.theme.UltimateTrolleyFitnessTheme
-import kotlin.math.sqrt
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.ultimatetrolleyfitness.db.DatabaseConnection
+import com.example.ultimatetrolleyfitness.exercise.Exercise
+import com.example.ultimatetrolleyfitness.exercise.ExerciseDetailSheet
+import com.example.ultimatetrolleyfitness.exercise.myAPI
+import com.example.ultimatetrolleyfitness.home.DaysExercises
+import com.example.ultimatetrolleyfitness.navigation.BottomNavigationBar
+import com.example.ultimatetrolleyfitness.nutrition.FoodAttribute
+import com.example.ultimatetrolleyfitness.nutrition.FoodDetailScreen
+import com.example.ultimatetrolleyfitness.nutrition.NutritionData
+import com.example.ultimatetrolleyfitness.ui.theme.RetrofitInstance
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.GenericTypeIndicator
+import com.google.firebase.database.ValueEventListener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 
-class MainActivity : ComponentActivity(), SensorEventListener {
-    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
-    private var magnitudePreviousStep = 0.0
-    private var sensorManager: SensorManager? = null
+/**
+ * The main activity managing the application's components and navigation.
+ */
+class MainActivity : ComponentActivity() {
+    private var apiData by mutableStateOf<List<Exercise>?>(null)
+    private lateinit var stepTrackerPermissionManager: StepCounterHelper
+    lateinit var auth: FirebaseAuth
 
-    private var running = false
-    private var totalSteps = 0f
-    private var previousTotalSteps = 0f
-
-
-
+    /**
+     * Called when the activity is starting.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
+        fetchDataFromApi("", "", "", "") // Fetch initial data from the API
+
+        // Commented out below for testing login form.
         setContentView(R.layout.activity_main)
 
-        loadData()
-        resetSteps()
-        setupPermissionLauncher()
+        // Confirmation of user authentication
+        auth.currentUser?.email?.let { Log.i("User:", it) }
 
-        // Check if the 'ACTIVITY_RECOGNITION' permission is already granted.
-        if(isPermissionGranted()){
-            // If granted, launch the permission request for the 'ACTIVITY_RECOGNITION' permission.
-            // If not granted, the permission request will be triggered when necessary.
-            requestPermissionLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
+        setContent {
+            // Set up your navigation controller
+            val navController = rememberNavController()
+
+            // Read CSV data before setting content
+            NutritionData.readNutrientsCSV(this@MainActivity)
+
+            // Set up your navigation host with destinations
+            NavHost(navController = navController, startDestination = "com/example/ultimatetrolleyfitness/home") {
+                // Navigation setup for the "home" destination
+                composable("com/example/ultimatetrolleyfitness/home") {
+                    BottomNav(navController = navController) {
+                        HomeScreen(navController = navController)
+                    }
+                }
+
+                // Navigation setup for the "nutrition" destination
+                composable("nutrition") {
+                    BottomNav(navController = navController) {
+                        NutritionScreen(navController = navController)
+                    }
+                }
+
+                // Navigation setup for the "workout" destination
+                composable("workout") {
+                    BottomNav(navController = navController) {
+                        // Displaying the WorkoutScreen
+                        WorkoutScreen(
+                            apiData,
+                            fetchDataFromApi = { name, type, muscle, difficulty ->
+                                // Feting data form the api base on the user provided perameters
+                            fetchDataFromApi(name, type, muscle, difficulty)
+                            }
+                        )
+                    }
+                }
+                // Composable setup for displaying detailed information about fooditems
+                composable("foodDetail/{foodName}") { backStackEntry ->
+                    val foodName = backStackEntry.arguments?.getString("foodName")
+                    val foodItem = NutritionData.getCSVData().firstOrNull { it[0] == foodName }
+
+                    // If the food item is found, display the FoodDetailScreen
+                    if (foodItem != null) {
+                        BottomNav(navController = navController) {
+                            FoodDetailScreen(foodItem, navController)
+                        }
+                    } else {
+                        // Handle case when food item is not found. Display a message indicating so
+                        Text("Food item not found")
+                    }
+                }
+
+                // Composable setup for displaying exercises planned for a specific day
+                composable("plan/{day}") {backStackEntry ->
+                    val day = backStackEntry.arguments?.getString("day")
+                    // If the day value is present, display exercises for that day
+                    if (day != null) {
+                        BottomNav(navController = navController) {
+                            DaysExercises(day)
+                        }
+                   // If the day value is null, display a message indicating no exercises found for that day
+                    } else {
+                        Text(text = "Exercises for $day not found.")
+                    }
+                }
+            }
         }
-
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-
     }
 
-    // Checks if the user granted sensor data permission
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun isPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this,
-        android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED
-    }
 
-    // Sets up the permission modal
-    private fun setupPermissionLauncher() {
-        requestPermissionLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-                // Empty for future handling of each result
-                if (isGranted) {
-                    // Permission granted
+    /**
+     * Fetches workout related information from an API
+     */
+    private fun fetchDataFromApi(name: String, type: String, muscle: String, difficulty: String) {
+        val apiService = RetrofitInstance.retrofit.create(myAPI::class.java)
+
+        val call = apiService.getExercises(name, type, muscle, difficulty)
+
+        // Asynchronous callback for a successful API response
+        call.enqueue(object : Callback<List<Exercise>> {
+            override fun onResponse(
+                call: Call<List<Exercise>>,
+                response: Response<List<Exercise>>
+            ) {
+                if (response.isSuccessful) {
+                    // Extract the response body (products data) from the API response
+                    val myData = response.body()
+
+                    // Update the jsonData state variable with the fetched data
+                    apiData = myData
+                    Log.i("Success", "Data was received")
                 } else {
-                    // Permission denied
+                    // Assign error to exercises for feedback to user
+                    Log.e("Failure", response.toString())
                 }
             }
+
+            override fun onFailure(call: Call<List<Exercise>>, t: Throwable) {
+                // Handle network error
+                t.message?.let { Log.e("Failure", it) }
+            }
+        })
+    }
+}
+
+/**
+ * Composable to create the Bottom Navigation bar
+ */
+@Composable
+fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Content takes remaining space
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            content()
+        }
+        // Bottom navigation bar
+        BottomNavigationBar(navController = navController)
+    }
+}
+
+/**
+ * Homescreen view displaying either progress or your plan tabs
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current // Get the context using LocalContext
+    var selectedTabIndex by remember { mutableStateOf(0)}
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ){
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            Tab(
+                text = { Text("Progress") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            Tab(
+                text = { Text("Your Plan") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            )
+        }
+
+        when (selectedTabIndex) {
+            0 -> ProgressContent(context = context) // Pass the context to ProgressContent
+            1 -> PlanContent(navController)
+        }
+    }
+}
+
+/**
+ * Composable for displaying progress-related content.
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ProgressContent(context: Context) { // Pass the Context to access SharedPreferences
+    val dayOfWeek = LocalDate.now().dayOfWeek
+    val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val exerciseRef = DatabaseConnection("exercises")
+    val exerciseNames = remember { mutableStateListOf<String>() }
+    val checkedExerciseStates = remember { mutableStateListOf<Boolean>() } // Mutable list to hold the checked state for each exercise
+    val CHECKBOX_PREFS = "checkbox_prefs" // Define a name for the SharedPreferences file
+
+    // Function to save checkbox state
+    fun saveCheckboxState(index: Int, isChecked: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(CHECKBOX_PREFS, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putBoolean("checkbox_$index", isChecked).apply()
     }
 
+    // Function to load checkbox state
+    fun loadCheckboxState(index: Int): Boolean {
+        val sharedPreferences = context.getSharedPreferences(CHECKBOX_PREFS, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("checkbox_$index", false)
+    }
 
-    // Resume sensor data collection when the activity is in the foreground.
-    override fun onResume(){
-        super.onResume()
+    LaunchedEffect(exerciseRef) {
+        exerciseRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (exerciseSnapshot in snapshot.children) {
+                    val selectedDaysSnapshot = exerciseSnapshot.child("selectedDays")
+                    val type = object : GenericTypeIndicator<List<String>>() {}
+                    val selectedDays = selectedDaysSnapshot.getValue(type)
 
-        // Set the 'running' flag to true, indicating that the app is actively monitoring sensor data.
-        running = true
-
-        // Get a reference to the system's sensor service.
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        // Attempt to obtain references to specific sensor types: step counter, step detector, and accelerometer.
-        val stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val detectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-        // Determine the sensor available on the device and register a listener accordingly.
-        when{
-            stepSensor != null -> {
-                sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+                    if (selectedDays != null && dayOfWeekString in selectedDays) {
+                        val exerciseName =
+                            exerciseSnapshot.child("name").getValue(String::class.java)
+                        if (exerciseName != null) {
+                            exerciseNames.add(exerciseName)
+                        }
+                    }
+                }
             }
-            detectorSensor != null -> {
-                sensorManager.registerListener(this, detectorSensor, SensorManager.SENSOR_DELAY_UI)
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle any errors that may occur while fetching data
             }
-            accelerometer != null -> {
-                sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
-            }
-            else -> {
-                // Display a message if no compatible sensor is detected on the device.
-                Toast.makeText(this, "No compatible sensor detected on this device", Toast.LENGTH_SHORT).show()
-            }
+        })
+    }
+
+    // Initialize the checked states based on the number of exercises
+    if (checkedExerciseStates.isEmpty()) {
+        repeat(exerciseNames.size) {
+            checkedExerciseStates.add(loadCheckboxState(it))
         }
     }
 
-    // Pause the sensor data updates when the activity goes into the background
-    override fun onPause() {
-        super.onPause()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(8.dp)
+    ) {
+        Column (
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "$dayOfWeekString",
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
 
-        // Unregister the sensor event listener to conserve resources when activity is not in the foreground
-        // Will still track steps while application is not open.
-        sensorManager?.unregisterListener(this)
-    }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(count = exerciseNames.size) {index ->
+                    val name = exerciseNames[index]
 
-    // Handle changes in sensor data, updating the step count display and circular progress bar/
-    override fun onSensorChanged(event: SensorEvent?) {
-        // Find the TextView element tv_stepsTaken (Main Step Count Number)
-        val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-        // Find the circular progress bar element
-        val progress_circular = findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(R.id.progress_circular)
-
-        // If the target device has an Accelerometer
-        if(event!!.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            // Extract accelerometer data for each axis
-            val xAccel: Float = event.values[0]
-            val yAccel: Float = event.values[1]
-            val zAccel: Float = event.values[2]
-            // Calculate the magnitude (Darian Mega Brain Moment)
-            val magnitude: Double = sqrt((xAccel * xAccel + yAccel * yAccel + zAccel * zAccel).toDouble())
-
-            val magnitudeDelta: Double = magnitude - magnitudePreviousStep
-            magnitudePreviousStep = magnitude
-
-            if(magnitudeDelta > 6) {
-                totalSteps ++
-            }
-
-            // Convert the total step counter to an integer for display
-            val step: Int = totalSteps.toInt()
-
-            // Update the step count TextView with the current step count
-            tv_stepsTaken.text = step.toString()
-
-            // Animate the Circular Progress Bar to reflect the current step count
-            progress_circular.apply{
-                setProgressWithAnimation(step.toFloat())
-            }
-        // If the target device has a standard step counter
-        } else {
-            if(running){
-                totalSteps = event.values[0]
-                val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
-                tv_stepsTaken.text = currentSteps.toString()
-
-                progress_circular.apply{
-                    setProgressWithAnimation(currentSteps.toFloat())
+                    Row (
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = checkedExerciseStates[index],
+                            onCheckedChange = {
+                                // Update the checked state for the clicked exercise
+                                checkedExerciseStates[index] = it
+                                // Save the state to SharedPreferences
+                                saveCheckboxState(index, it)
+                            },
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = "$name",
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
                 }
             }
         }
     }
+}
 
-    // Function for resetting the step counter
-    private fun resetSteps(){
-        // Find the textview element tv_stepsTaken. (Main Step Counter Number)
-        val tv_stepsTaken = findViewById<TextView>(R.id.tv_stepsTaken)
-        tv_stepsTaken.setOnClickListener {
-        Toast.makeText(this, "Long tap to reset steps", Toast.LENGTH_SHORT).show()
+/**
+ * Composable for displaying planned exercises content.
+ */
+@Composable
+fun PlanContent(navController: NavController) {
+    // List of days of the week
+    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(count = daysOfWeek.size) {index ->
+            // For each day in the list, create a ClickableDayCard
+            val day = daysOfWeek[index]
+            ClickableDayCard(day = day, navController = navController)
+        }
+    }
+}
+
+/**
+ * Composable for creating a clickable day card to navigate to exercises planned for that day.
+ */
+@Composable
+fun ClickableDayCard(day: String, navController: NavController) {
+    Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)
+            .padding(8.dp)
+            .clickable { navController.navigate("plan/$day") },
+    ) {
+        Text(text = "$day") // Display the day inside the card
+    }
+}
+
+/**
+ * Composable function displaying nutrition-related content.
+ */
+@Composable
+fun NutritionScreen(navController: NavController) {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+
+    Column {
+        // TabRow displaying "Browse" and "My Food" tabs
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            // "Browse" tab
+            Tab(
+                text = { Text("Browse") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            // "My Food" tab
+            Tab(
+                text = { Text("My Food") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            )
         }
 
-        // Attach the long click listener to the step count
-        tv_stepsTaken.setOnLongClickListener{
-            previousTotalSteps = totalSteps
-            // Update the steps taken to 0 upon long click and save the data
-            tv_stepsTaken.text = 0.toString()
-            saveData()
+        // Display different content based on the selected tab index
+        when (selectedTabIndex) {
+            0 -> {
+                BrowseNutritionContent(navController)
+            }
+            1 -> {
+                MyFoodContent()
+            }
+        }
+    }
+}
 
-            true
+/**
+ * Composable function displaying browse nutrition content.
+ */
+@Composable
+fun BrowseNutritionContent(navController: NavController) {
+    // State to hold the search text and filtered data
+    val searchText = remember { mutableStateOf("") }
+    val csvData = remember { NutritionData.getCSVData() }
+    var filteredData by remember { mutableStateOf(csvData) }
+
+    Column {
+        // Search bar with text field and search button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            TextField(
+                value = searchText.value,
+                onValueChange = { searchText.value = it },
+                label = { Text("Search") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        // Filtering data when search action is triggered
+                        filteredData = csvData.filter { row ->
+                            row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
+                        }
+                    },
+                    onDone = {
+                        // Filtering data when keyboard done action is triggered
+                        filteredData = csvData.filter { row ->
+                            row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
+                        }
+                    }
+                )
+            )
+
+            Button(
+                onClick = {
+                    // Filtering data when search button is clicked
+                    filteredData = csvData.filter { row ->
+                        row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
+                    }
+                },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                Text("Search")
+            }
+        }
+
+        // Displaying filtered data in a LazyColumn
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            items(filteredData) { foodItem ->
+                ClickableFoodItem(foodItem, navController)
+            }
+        }
+    }
+}
+
+/**
+ * Display the users food items saved to the database for each users food page
+ */
+@Composable
+fun MyFoodContent() {
+    // Get the current user's ID from Firebase Auth
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+
+    // State to hold the user's food data
+    var foodsState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
+
+    // Function to fetch user's food data from Firebase Realtime Database
+    fun fetchUserFoodData() {
+        if (currentUserID != null) {
+            // Fetching reference to the "foods" node in Firebase Realtime Database
+            val foodRef = DatabaseConnection("foods")
+
+            // Fetch data from Firebase and update the foodsState
+            foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val foodsList = mutableListOf<Array<String>>()
+                    val children = snapshot.children
+
+                    children.forEach() { it ->
+                        val foodDetails = it.value as? MutableList<String>
+                        if (foodDetails != null) {
+                            it.key?.let { it1 -> foodDetails.add(it1) }
+                        }
+                        foodDetails?.let {
+                            foodsList.add(it.toTypedArray())
+                        }
+                    }
+                    foodsState = foodsList
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle any errors that may occur while fetching data
+                }
+            })
         }
     }
 
-
-    // Save the previous total step count
-    // Shared preferences are used to store simple data persistently
-    private fun saveData() {
-        // Access shared preferences and set to private
-        val sharedPreferences = getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-
-        // Create an editor to modify the shared preferences
-        val editor = sharedPreferences.edit()
-
-        // Store the previous total steps using key1 and save changes
-        editor.putFloat("key1", previousTotalSteps)
-        editor.apply()
+    // Fetch user's food data initially
+    LaunchedEffect(Unit) {
+        fetchUserFoodData()
     }
 
-    private fun loadData(){
-        val sharedPreferences = getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-        val savedNumber = sharedPreferences.getFloat("key1", 0f)
-        previousTotalSteps = savedNumber
+    // Display user's food data
+    Column {
+        LazyColumn {
+            items(foodsState) { foodItem ->
+                FoodItemCard(foodItem, ::fetchUserFoodData)
+                Log.d("Food data", foodItem.contentToString())
+            }
+        }
+    }
+}
+
+/**
+ * composable to create a card that will  display the information of a users saved food items along with a button to delete them from the database
+ */
+@Composable
+fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
+    // Get the current user's ID from Firebase Auth
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+
+    // State to hold the key in Firebase Database
+    var key by remember { mutableStateOf<String>("") }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // List of attribute names for the food item
+            val attributeNames = listOf(
+                "Name", "Measure", "Grams", "Calories",
+                "Protein", "Fat", "Saturated Fats", "Fiber", "Carbs", "Category"
+            )
+
+            // Iterate through the food item attributes
+            foodItem.forEachIndexed { index, value ->
+                if (index < attributeNames.size) {
+                    // Display each attribute with its corresponding value
+                    FoodAttribute(attribute = attributeNames[index], value = value)
+                } else {
+                    // Store the key (Firebase ID) of the food item
+                    key = value
+                    Log.d("Key", key)
+                }
+            }
+
+            // Add a button to remove the item from the database
+            if (currentUserID != null) {
+                Button(
+                    onClick = {
+                        // Remove the item from Firebase database
+                        DatabaseConnection("foods")?.child(key)?.removeValue()
+                        fetchFunction() // Call the fetch function after removal
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Remove")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Make food items listed clickable and send the user to the fooddetail screen of the clicked food item.
+ */
+@Composable
+fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
+    Box(
+        modifier = Modifier
+            .clickable {
+                // Navigate with the food name as a parameter to the "foodDetail" destination
+                navController.navigate("foodDetail/${foodItem[0]}") // Navigate with the food name as a parameter
+            }
+            .padding(8.dp)
+    ) {
+        Text(text = foodItem[0]) // Display the name of the food item
+    }
+}
+
+/**
+ * Workout screen composable display either the favorites or browse the workout content
+ */
+@Composable
+fun WorkoutScreen(
+    apiData: List<Exercise>?,
+    fetchDataFromApi: (String, String, String, String) -> Unit
+) {
+    // Mutable state variables to hold exercise information
+    var exerciseName by remember { mutableStateOf("") }
+    var selectedType by remember { mutableStateOf("") }
+    var selectedMuscle by remember { mutableStateOf("") }
+    var selectedDifficulty by remember { mutableStateOf("") }
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    var searchButtonClicked by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // TabRow to switch between "Browse" and "Favorites" tabs
+        TabRow(
+            selectedTabIndex = selectedTabIndex
+        ) {
+            Tab(
+                text = { Text("Browse") },
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 }
+            )
+            Tab(
+                text = { Text("Favorites") },
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 }
+            )
+        }
+
+        // Display content based on the selected tab index
+        when (selectedTabIndex) {
+            0 -> {
+                // Display WorkoutSearchBar for browsing exercises
+                WorkoutSearchBar(
+                    exerciseName = exerciseName,
+                    onExerciseNameChange = { exerciseName = it },
+                    selectedType = selectedType,
+                    onSelectedTypeChange = { selectedType = it },
+                    selectedMuscle = selectedMuscle,
+                    onSelectedMuscleChange = { selectedMuscle = it },
+                    selectedDifficulty = selectedDifficulty,
+                    onSelectedDifficultyChange = { selectedDifficulty = it },
+                    onSearch = { searchExerciseName, searchType, searchMuscle, searchDifficulty ->
+                        searchButtonClicked = true
+                        fetchDataFromApi(searchExerciseName, searchType, searchMuscle, searchDifficulty)
+                    }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                // Display BrowseTabContent if search button is clicked
+                if (searchButtonClicked) {
+                    BrowseTabContent(apiData)
+                }
+            }
+            // Display FavoritesTabContent for favorite exercises
+            1 -> FavoritesTabContent()
+        }
+    }
+}
+
+/**
+ * Browse tab, content displaying exercises from DisplayJsonData
+ */
+@Composable
+fun BrowseTabContent(apiData: List<Exercise>?) {
+    // Check if the API data is null or empty
+    if (apiData.isNullOrEmpty()) {
+        // Display a message if no exercises were found
+        Text(text = "No exercises were found.")
+    } else {
+        // Display the fetched exercise data
+        DisplayExerciseData(apiData)
+    }
+}
+
+/**
+ * Users Favorites tab displaying workouts they have selected to add to favorites
+ */
+@Composable
+fun FavoritesTabContent() {
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+    var favoritesState by remember { mutableStateOf<List<Exercise>>(emptyList()) }
+
+    fun fetchUserFavorites() {
+        if (currentUserID != null) {
+            val favoritesRef = DatabaseConnection("favorite_exercises")
+
+            favoritesRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val favoritesList = mutableListOf<Exercise>()
+                    val children = snapshot.children
+                    var id = 1
+                    children.forEach() { it ->
+                        val name = it.child("name").value.toString()
+                        val type = it.child("type").value.toString()
+                        val muscle = it.child("muscle").value.toString()
+                        val equipment = it.child("equipment").value.toString()
+                        val difficulty = it.child("difficulty").value.toString()
+                        val instructions = it.child("instructions").value.toString()
+                        val exercise = Exercise(id, name, type, muscle, equipment, difficulty, instructions)
+                        favoritesList.add(exercise)
+                    }
+                    favoritesState = favoritesList
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle any errors that may occur while fetching data
+                }
+            })
+        }
     }
 
-    // Handle changes in sensor accuracy if necessary in the future. Probably not needed
-    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+    // Fetch user's food data initially
+    LaunchedEffect(Unit) {
+        fetchUserFavorites()
+        Log.d("exercise data", favoritesState.toString())
+    }
 
+    DisplayExerciseData(favoritesState)
+}
+
+/**
+ * Displays workout related data.
+ */
+@Composable
+fun DisplayExerciseData(data: List<Exercise>?) {
+    LazyColumn {
+        items(data ?: emptyList()) { exercise ->
+            if (exercise.name.isNotEmpty()) {
+                val favoritesRef = DatabaseConnection("favorite_exercises")
+                val buttonState = remember { mutableStateOf(false) }
+                val showSheet = remember { mutableStateOf(false) }
+
+                // Extracting exercise details
+                val name = exercise.name
+                val type = exercise.type
+                val muscle = exercise.muscle
+                val equipment = exercise.equipment
+                val difficulty = exercise.difficulty
+                val instructions = exercise.instructions
+                var isFavorite by remember {
+                    mutableStateOf(false)
+                }
+
+
+                favoritesRef?.addListenerForSingleValueEvent(object: ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        for(favorite in snapshot.children) {
+                            if(favorite.child("name").value == name) {
+                                isFavorite = true
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.d("a", "a")
+                    }
+                })
+
+                // Conditionally display ExerciseDetailSheet based on showSheet value
+                if (showSheet.value) {
+                    ExerciseDetailSheet(
+                        name = name,
+                        type = type,
+                        muscle = muscle,
+                        equipment = equipment,
+                        difficulty = difficulty,
+                        instructions = instructions,
+                        isFavorite = isFavorite,
+                    ) {
+                        showSheet.value = false
+                    }
+                }
+
+                // Displaying exercise details in a ListItem
+                ListItem(
+                    headlineContent = {
+                        Text(text = name.replaceFirstChar { it.uppercase() })
+                    },
+                    overlineContent = {
+                        Text(text = "${type.replaceFirstChar { it.uppercase() }} - ${muscle.replaceFirstChar { it.uppercase() }}")
+                    },
+                    supportingContent = {
+                        Text(text = "Difficulty: ${difficulty.replaceFirstChar { it.uppercase() }}")
+                    },
+                    trailingContent = {
+                        IconButton(onClick = {showSheet.value = true}) { // Should launch detailed workout info screen
+                            Icon(
+                                imageVector = (Icons.Outlined.Info),
+                                contentDescription = "Info Button"
+                            )
+                        }
+                    }
+                )
+                // Display a message if no exercises were found
+            } else {
+                Text(text = "No exercises were found.")
+            }
+        }
     }
 }
 
 
+/**
+ * Search bar for displaying exercises based on search parameters
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+fun WorkoutSearchBar(
+    exerciseName: String,
+    onExerciseNameChange: (String) -> Unit,
+    selectedType: String,
+    onSelectedTypeChange: (String) -> Unit,
+    selectedMuscle: String,
+    onSelectedMuscleChange: (String) -> Unit,
+    selectedDifficulty: String,
+    onSelectedDifficultyChange: (String) -> Unit,
+    onSearch: (String, String, String, String) -> Unit
+) {
+    // Mutable state variables for dropdown and item heights
+    var typeExpanded by rememberSaveable { mutableStateOf(false) }
+    var muscleExpanded by rememberSaveable { mutableStateOf(false) }
+    var difficultyExpanded by rememberSaveable { mutableStateOf(false) }
+
+    var typeItemHeight by remember { mutableStateOf(0.dp) }
+    var muscleItemHeight by remember { mutableStateOf(0.dp) }
+    var difficultyItemHeight by remember { mutableStateOf(0.dp) }
+
+    val density = LocalDensity.current
+
+    // Lists for dropdown menu items
+    val types = listOf(
+        "cardio", "olympic_weightlifting", "plyometrics",
+        "powerlifting", "strength", "stretching", "strongman"
     )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    UltimateTrolleyFitnessTheme {
-        Greeting("Android")
+    val muscles = listOf(
+        "abdominals", "abductors", "adductors", "biceps", "calves",
+        "chest", "forearms", "glutes", "hamstrings", "lats", "lower_back",
+        "middle_back", "neck", "quadriceps", "traps", "triceps"
+    )
+
+    val difficulties = listOf(
+        "beginner", "intermediate", "expert"
+    )
+
+    Card(
+        shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp),
+        colors = CardDefaults.cardColors(),
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // TextField for exercise name input
+            TextField(
+                value = exerciseName,
+                onValueChange = { onExerciseNameChange(it) },
+                label = { Text("Exercise Name") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+
+            // Dropdown menus for exercise type, target muscle, and difficulty level
+            ExposedDropdownMenuBox(
+                expanded = typeExpanded,
+                onExpandedChange = { typeExpanded = it },
+            ) {
+                // Dropdown for exercise type selection
+                TextField(
+                    value = (if (selectedType !== "") selectedType else "Exercise Type"),
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded)
+                    },
+                    modifier = Modifier.menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = typeExpanded,
+                    onDismissRequest = {
+                        typeExpanded = false
+                    }
+                ) {
+                    types.forEach { type ->
+                        // Dropdown menu items for exercise type
+                        DropdownMenuItem(
+                            text = { Text(text = type) },
+                            onClick = {
+                                onSelectedTypeChange(type)
+                                typeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = muscleExpanded,
+                onExpandedChange = { muscleExpanded = it },
+            ) {
+                TextField(
+                    value = (if (selectedMuscle !== "") selectedMuscle else "Target Muscle"),
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = muscleExpanded)
+                    },
+                    modifier = Modifier.menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = muscleExpanded,
+                    onDismissRequest = {
+                        muscleExpanded = false
+                    }
+                ) {
+                    muscles.forEach { muscle ->
+                        DropdownMenuItem(
+                            text = { Text(text = muscle) },
+                            onClick = {
+                                onSelectedMuscleChange(muscle)
+                                muscleExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = difficultyExpanded,
+                onExpandedChange = { difficultyExpanded = it },
+            ) {
+                TextField(
+                    value = (if (selectedDifficulty !== "") selectedDifficulty else "Difficulty"),
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = difficultyExpanded)
+                    },
+                    modifier = Modifier.menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = difficultyExpanded,
+                    onDismissRequest = {
+                        difficultyExpanded = false
+                    }
+                ) {
+                    difficulties.forEach { difficulty ->
+                        DropdownMenuItem(
+                            text = { Text(text = difficulty) },
+                            onClick = {
+                                onSelectedDifficultyChange(difficulty)
+                                difficultyExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Button to trigger search based on selected criteria
+            Button(
+                onClick = {
+                    onSearch(exerciseName, selectedType, selectedMuscle, selectedDifficulty)
+                },
+                modifier = Modifier
+                    .padding(top = 8.dp),
+                shape = RoundedCornerShape(40.dp)
+            ) {
+                Text("Search")
+            }
+        }
     }
 }

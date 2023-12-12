@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "632827555207",
+    "project_id": "ultimate-trolley-fitness",
+    "storage_bucket": "ultimate-trolley-fitness.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632827555207:android:8b712853310aaf56513722",
+        "android_client_info": {
+          "package_name": "com.example.ultimatetrolleyfitness"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbEI82dUXk5T1h4N9hSn92kO9APIq3xfA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

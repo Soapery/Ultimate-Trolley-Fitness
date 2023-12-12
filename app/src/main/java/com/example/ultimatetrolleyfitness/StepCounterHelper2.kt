@@ -1,3 +1,5 @@
+package com.example.ultimatetrolleyfitness
+
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -12,17 +14,17 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import com.example.ultimatetrolleyfitness.R
-import kotlin.math.sqrt
+import java.lang.Math.sqrt
 
 /**
- * Step Counter Helper, provides logic for the step tracker when implemented in the main activity.
+ *  Step Counter Helper 2. Logic to be implemented in a composable function to supply a tracker without a progress bar.
  */
 @RequiresApi(Build.VERSION_CODES.Q)
 class StepCounterHelper(
     private val activity: ComponentActivity,
     private val onStepCountChangeListener: (Int) -> Unit
 ) : SensorEventListener {
+
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
     private var magnitudePreviousStep = 0.0
     private var sensorManager: SensorManager? = null
@@ -96,12 +98,8 @@ class StepCounterHelper(
 
     override fun onSensorChanged(event: SensorEvent?) {
         val tv_stepsTaken = activity.findViewById<TextView>(R.id.tv_stepsTaken)
-        val progress_circular =
-            activity.findViewById<com.mikhaellopez.circularprogressbar.CircularProgressBar>(
-                R.id.progress_circular
-            )
 
-        if (tv_stepsTaken != null && progress_circular != null) {
+        if (tv_stepsTaken != null) {
             // If the target device has an Accelerometer
             if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
                 val xAccel: Float = event.values[0]
@@ -120,55 +118,18 @@ class StepCounterHelper(
                 val step: Int = totalSteps.toInt()
                 tv_stepsTaken.text = step.toString()
 
-                progress_circular.apply {
-                    setProgressWithAnimation(step.toFloat())
-                }
                 // If the target device has a standard step counter
             } else {
                 if (running) {
                     totalSteps = event?.values?.get(0) ?: 0f
                     val currentSteps = totalSteps.toInt() - previousTotalSteps.toInt()
                     tv_stepsTaken.text = currentSteps.toString()
-
-                    progress_circular.apply {
-                        setProgressWithAnimation(currentSteps.toFloat())
-                    }
                 }
             }
         }
     }
 
-    private fun resetSteps() {
-        val tv_stepsTaken = activity.findViewById<TextView>(R.id.tv_stepsTaken)
-        tv_stepsTaken.setOnClickListener {
-            Toast.makeText(activity, "Long tap to reset steps", Toast.LENGTH_SHORT).show()
-        }
-
-        tv_stepsTaken.setOnLongClickListener {
-            previousTotalSteps = totalSteps
-            tv_stepsTaken.text = 0.toString()
-            saveData()
-
-            true
-        }
-    }
-
-    private fun saveData() {
-        val sharedPreferences = activity.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putFloat("key1", previousTotalSteps)
-        editor.apply()
-    }
-
-    private fun loadData() {
-        val sharedPreferences = activity.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-        val savedNumber = sharedPreferences.getFloat("key1", 0f)
-        previousTotalSteps = savedNumber
-    }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-
     }
 }
-
-

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Ultimate Trolley Fitness</string>
+    <string name="title_activity_email_password">EmailPasswordActivity</string>
 </resources>
