@@ -75,6 +75,7 @@ import com.google.firebase.database.database
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.DayOfWeek
 
 
 class MainActivity : ComponentActivity() {
@@ -248,10 +249,15 @@ fun HomeScreen(navController: NavController) {
         }
         
         when (selectedTabIndex) {
-            0 -> Text(text = "Progress Content")
+            0 -> ProgressContent()
             1 -> PlanContent(navController)
         }
     }
+}
+
+@Composable
+fun ProgressContent() {
+
 }
 
 
