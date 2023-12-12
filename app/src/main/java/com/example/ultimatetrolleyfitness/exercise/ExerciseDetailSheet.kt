@@ -17,8 +17,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -34,11 +36,12 @@ fun ExerciseDetailSheet(
     equipment: String,
     difficulty: String,
     instructions: String,
+    isFavorite: Boolean,
     onDismiss: () -> Unit
 ) {
     val modalBottomSheetState = rememberModalBottomSheetState()
-    val buttonState = remember {mutableStateOf(false) }
-    val showDialogState= remember { mutableStateOf(false) }
+    var userFavorite by remember {mutableStateOf(isFavorite) }
+    val showDialogState = remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
@@ -58,7 +61,7 @@ fun ExerciseDetailSheet(
                     ) { // Should add to users workout plan
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = if (buttonState.value) {
+                            contentDescription = if (userFavorite) {
                                 "Remove"
                             } else {
                                 "Add"
@@ -66,15 +69,23 @@ fun ExerciseDetailSheet(
                         )
                     }
                     IconButton(
-                        onClick = {buttonState.value = !buttonState.value }
+                        onClick = {
+                            if(!userFavorite){
+                                addToFavorites(name, type, muscle, equipment, difficulty, instructions)
+                            } else {
+                                removeFromFavorites(name)
+                            }
+
+                            userFavorite = !userFavorite
+                        }
                     ) { // Should add to users favorites tab
                         Icon(
-                            imageVector = if (buttonState.value) {
+                            imageVector = if (userFavorite) {
                                 Icons.Default.Favorite
                             } else {
                                 Icons.Default.FavoriteBorder
                             },
-                            contentDescription = if (buttonState.value) {
+                            contentDescription = if (userFavorite) {
                                 "Remove"
                             } else {
                                 "Add"

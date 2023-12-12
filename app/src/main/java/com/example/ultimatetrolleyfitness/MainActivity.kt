@@ -40,6 +40,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -529,6 +530,53 @@ fun BrowseTabContent(apiData: List<Exercise>?) {
 
 @Composable
 fun FavoritesTabContent() {
+    val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+    var favoritesState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
+
+    fun fetchUserFavorites() {
+        if (currentUserID != null) {
+            val favoritesRef = DatabaseConnection("favorite_exercises")
+
+            favoritesRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val favoritesList = mutableListOf<Array<String>>()
+                    val children = snapshot.children
+
+                    children.forEach() { it ->
+                        val favoritesDetails = it.value as? MutableList<String>
+                        if (favoritesDetails != null) {
+                            it.key?.let { it1 -> favoritesDetails.add(it1) }
+                        }
+                        favoritesDetails?.let {
+                            favoritesList.add(it.toTypedArray())
+                        }
+                    }
+                    favoritesState = favoritesList
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle any errors that may occur while fetching data
+                }
+            })
+        }
+    }
+
+    // Fetch user's food data initially
+    LaunchedEffect(Unit) {
+        fetchUserFavorites()
+        Log.d("exercise data", favoritesState.toString())
+    }
+
+    // Display user's food data
+    Column {
+        LazyColumn {
+//            items(favoritesState) { favoriteWorkout ->
+//                FoodItemCard(favoriteWorkout, ::fetchUserFavorites)
+//                Log.d("Food data", favoriteWorkout.contentToString())
+//            }
+        }
+    }
+
     Text(text = "Favorites Tab Content")
 }
 
@@ -537,6 +585,7 @@ fun DisplayJsonData(data: List<Exercise>?) {
     LazyColumn {
         items(data ?: emptyList()) { exercise ->
             if (exercise.name.isNotEmpty()) {
+                val favoritesRef = DatabaseConnection("favorite_exercises")
                 val buttonState = remember { mutableStateOf(false) }
                 val showSheet = remember { mutableStateOf(false) }
                 val name = exercise.name
@@ -545,6 +594,24 @@ fun DisplayJsonData(data: List<Exercise>?) {
                 val equipment = exercise.equipment
                 val difficulty = exercise.difficulty
                 val instructions = exercise.instructions
+                var isFavorite by remember {
+                    mutableStateOf(false)
+                }
+
+
+                favoritesRef?.addListenerForSingleValueEvent(object: ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        for(favorite in snapshot.children) {
+                            if(favorite.child("name").value == name) {
+                                isFavorite = true
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.d("a", "a")
+                    }
+                })
 
                 if (showSheet.value) {
                     ExerciseDetailSheet(
@@ -553,7 +620,8 @@ fun DisplayJsonData(data: List<Exercise>?) {
                         muscle = muscle,
                         equipment = equipment,
                         difficulty = difficulty,
-                        instructions = instructions
+                        instructions = instructions,
+                        isFavorite = isFavorite,
                     ) {
                         showSheet.value = false
                     }
