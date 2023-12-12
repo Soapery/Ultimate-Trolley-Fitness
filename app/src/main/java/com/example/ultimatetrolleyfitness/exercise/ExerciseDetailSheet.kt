@@ -39,8 +39,10 @@ fun ExerciseDetailSheet(
     isFavorite: Boolean,
     onDismiss: () -> Unit
 ) {
+    // Stores state of bottom sheet for display
     val modalBottomSheetState = rememberModalBottomSheetState()
-    var userFavorite by remember {mutableStateOf(isFavorite) }
+    // Initial state is determined by if the current exercise is already favoured by the user
+    var userFavorite by remember { mutableStateOf(isFavorite) }
     val showDialogState = remember { mutableStateOf(false) }
 
     ModalBottomSheet(
@@ -53,32 +55,40 @@ fun ExerciseDetailSheet(
                 Text(text = name)
             },
             trailingContent = {
-                Row (
+                Row(
                     modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
+                    // For adding a workout to the users exercise plan
                     IconButton(
                         onClick = { showDialogState.value = true }
-                    ) { // Should add to users workout plan
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = if (userFavorite) {
-                                "Remove"
-                            } else {
-                                "Add"
-                            }
+                            contentDescription = "Add to Exercise plan"
                         )
                     }
+                    // For adding a workout to the users favorites
                     IconButton(
                         onClick = {
-                            if(!userFavorite){
-                                addToFavorites(name, type, muscle, equipment, difficulty, instructions)
+                            // If current workout isn't favoured, add it to favorites, otherwise remove.
+                            if (!userFavorite) {
+                                addToFavorites(
+                                    name,
+                                    type,
+                                    muscle,
+                                    equipment,
+                                    difficulty,
+                                    instructions
+                                )
                             } else {
                                 removeFromFavorites(name)
                             }
 
+                            // Changes to this variable affect button state as well!
                             userFavorite = !userFavorite
                         }
-                    ) { // Should add to users favorites tab
+                    ) {
+                        // Shown hollow or filled in dependent on if current workout is favoured
                         Icon(
                             imageVector = if (userFavorite) {
                                 Icons.Default.Favorite
@@ -95,6 +105,7 @@ fun ExerciseDetailSheet(
                 }
             }
         )
+        // Displaying workout data
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Type: $type")
             Text(text = "Muscle Group: $muscle")
@@ -104,6 +115,7 @@ fun ExerciseDetailSheet(
             Text(text = "Instructions: $instructions")
         }
 
+        // Invoking function to add exercise to workout plan
         if (showDialogState.value) {
             AddExercise(
                 name,
