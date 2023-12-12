@@ -101,5 +101,4 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
     implementation("com.google.firebase:firebase-database")
-    implementation("com.mutualmobile:composesensors:1.1.2")
 }
