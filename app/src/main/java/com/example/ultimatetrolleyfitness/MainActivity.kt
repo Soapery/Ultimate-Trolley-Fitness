@@ -103,52 +103,59 @@ class MainActivity : ComponentActivity() {
 
             // Set up your navigation host with destinations
             NavHost(navController = navController, startDestination = "com/example/ultimatetrolleyfitness/home") {
-//                composable("main") {
-//                    // Your main content goes here
-//                    BottomNav(navController = navController) {
-//                        HomeScreen()
-//                    }
-//                }
+
+                // Navigation setup for the "home" destination
                 composable("com/example/ultimatetrolleyfitness/home") {
                     BottomNav(navController = navController) {
                         HomeScreen(navController = navController)
                     }
                 }
+
+                // Navigation setup for the "nutrition" destination
                 composable("nutrition") {
                     BottomNav(navController = navController) {
                         NutritionScreen(navController = navController)
                     }
                 }
+
+                // Navigation setup for the "workout" destination
                 composable("workout") {
                     BottomNav(navController = navController) {
+                        // Displaying the WorkoutScreen
                         WorkoutScreen(
                             apiData,
                             fetchDataFromApi = { name, type, muscle, difficulty ->
+                                // Feting data form the api base on the user provided perameters
                             fetchDataFromApi(name, type, muscle, difficulty)
                             }
                         )
                     }
                 }
+                // Composable setup for displaying detailed information about fooditems
                 composable("foodDetail/{foodName}") { backStackEntry ->
                     val foodName = backStackEntry.arguments?.getString("foodName")
                     val foodItem = NutritionData.getCSVData().firstOrNull { it[0] == foodName }
 
+                    // If the food item is found, display the FoodDetailScreen
                     if (foodItem != null) {
                         BottomNav(navController = navController) {
                             FoodDetailScreen(foodItem, navController)
                         }
                     } else {
-                        // Handle case when food item is not found
+                        // Handle case when food item is not found. Display a message indicating so
                         Text("Food item not found")
                     }
                 }
+
+                // Composable setup for displaying exercises planned for a specific day
                 composable("plan/{day}") {backStackEntry ->
                     val day = backStackEntry.arguments?.getString("day")
-
+                    // If the day value is present, display exercises for that day
                     if (day != null) {
                         BottomNav(navController = navController) {
                             DaysExercises(day)
                         }
+                   // If the day value is null, display a message indicating no exercises found for that day
                     } else {
                         Text(text = "Exercises for $day not found.")
                     }
@@ -158,7 +165,9 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
+    /**
+     * Fetches workout related information from an API
+     */
     private fun fetchDataFromApi(name: String, type: String, muscle: String, difficulty: String) {
         val apiService = RetrofitInstance.retrofit.create(myAPI::class.java)
 
@@ -191,6 +200,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Composable to create the Bottom Navigation bar
+ */
 @Composable
 fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
     Column(
@@ -208,6 +220,9 @@ fun BottomNav(navController: NavController, content: @Composable () -> Unit) {
     }
 }
 
+/**
+ * Homescreen view displaying either progress or your plan tabs
+ */
 @Composable
 fun HomeScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0)}
@@ -239,14 +254,17 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+
 @Composable
 fun PlanContent(navController: NavController) {
+    // List of days of the week
     val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         items(count = daysOfWeek.size) {index ->
+            // For each day in the list, create a ClickableDayCard
             val day = daysOfWeek[index]
             ClickableDayCard(day = day, navController = navController)
         }
@@ -262,7 +280,7 @@ fun ClickableDayCard(day: String, navController: NavController) {
             .padding(8.dp)
             .clickable { navController.navigate("plan/$day") },
     ) {
-        Text(text = "$day")
+        Text(text = "$day") // Display the day inside the card
     }
 }
 
@@ -271,14 +289,17 @@ fun NutritionScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     Column {
+        // TabRow displaying "Browse" and "My Food" tabs
         TabRow(
             selectedTabIndex = selectedTabIndex
         ) {
+            // "Browse" tab
             Tab(
                 text = { Text("Browse") },
                 selected = selectedTabIndex == 0,
                 onClick = { selectedTabIndex = 0 }
             )
+            // "My Food" tab
             Tab(
                 text = { Text("My Food") },
                 selected = selectedTabIndex == 1,
@@ -286,6 +307,7 @@ fun NutritionScreen(navController: NavController) {
             )
         }
 
+        // Display different content based on the selected tab index
         when (selectedTabIndex) {
             0 -> {
                 BrowseNutritionContent(navController)
@@ -299,11 +321,13 @@ fun NutritionScreen(navController: NavController) {
 
 @Composable
 fun BrowseNutritionContent(navController: NavController) {
+    // State to hold the search text and filtered data
     val searchText = remember { mutableStateOf("") }
     val csvData = remember { NutritionData.getCSVData() }
     var filteredData by remember { mutableStateOf(csvData) }
 
     Column {
+        // Search bar with text field and search button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -321,11 +345,13 @@ fun BrowseNutritionContent(navController: NavController) {
                 ),
                 keyboardActions = KeyboardActions(
                     onSearch = {
+                        // Filtering data when search action is triggered
                         filteredData = csvData.filter { row ->
                             row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                         }
                     },
                     onDone = {
+                        // Filtering data when keyboard done action is triggered
                         filteredData = csvData.filter { row ->
                             row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                         }
@@ -335,6 +361,7 @@ fun BrowseNutritionContent(navController: NavController) {
 
             Button(
                 onClick = {
+                    // Filtering data when search button is clicked
                     filteredData = csvData.filter { row ->
                         row.getOrNull(0)?.contains(searchText.value, ignoreCase = true) == true
                     }
@@ -345,6 +372,7 @@ fun BrowseNutritionContent(navController: NavController) {
             }
         }
 
+        // Displaying filtered data in a LazyColumn
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
@@ -355,16 +383,24 @@ fun BrowseNutritionContent(navController: NavController) {
     }
 }
 
+/**
+ * Display the users food items saved to the database for each users food page
+ */
 @Composable
 fun MyFoodContent() {
+    // Get the current user's ID from Firebase Auth
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+
+    // State to hold the user's food data
     var foodsState by remember { mutableStateOf<List<Array<String>>>(emptyList()) }
 
     // Function to fetch user's food data from Firebase Realtime Database
     fun fetchUserFoodData() {
         if (currentUserID != null) {
+            // Fetching reference to the "foods" node in Firebase Realtime Database
             val foodRef = DatabaseConnection("foods")
 
+            // Fetch data from Firebase and update the foodsState
             foodRef?.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val foodsList = mutableListOf<Array<String>>()
@@ -405,9 +441,15 @@ fun MyFoodContent() {
     }
 }
 
+/**
+ * composable to create a card that will  display the information of a users saved food items along with a button to delete them from the database
+ */
 @Composable
 fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
+    // Get the current user's ID from Firebase Auth
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
+
+    // State to hold the key in Firebase Database
     var key by remember { mutableStateOf<String>("") }
 
     Card(
@@ -418,15 +460,19 @@ fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // List of attribute names for the food item
             val attributeNames = listOf(
                 "Name", "Measure", "Grams", "Calories",
                 "Protein", "Fat", "Saturated Fats", "Fiber", "Carbs", "Category"
             )
 
+            // Iterate through the food item attributes
             foodItem.forEachIndexed { index, value ->
                 if (index < attributeNames.size) {
+                    // Display each attribute with its corresponding value
                     FoodAttribute(attribute = attributeNames[index], value = value)
                 } else {
+                    // Store the key (Firebase ID) of the food item
                     key = value
                     Log.d("Key", key)
                 }
@@ -436,6 +482,7 @@ fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
             if (currentUserID != null) {
                 Button(
                     onClick = {
+                        // Remove the item from Firebase database
                         DatabaseConnection("foods")?.child(key)?.removeValue()
                         fetchFunction() // Call the fetch function after removal
                     },
@@ -448,11 +495,15 @@ fun FoodItemCard(foodItem: Array<String>, fetchFunction: () -> Unit) {
     }
 }
 
+/**
+ * Make food items listed clickable and send the user to the fooddetail screen of the clicked food item.
+ */
 @Composable
 fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
     Box(
         modifier = Modifier
             .clickable {
+                // Navigate with the food name as a parameter to the "foodDetail" destination
                 navController.navigate("foodDetail/${foodItem[0]}") // Navigate with the food name as a parameter
             }
             .padding(8.dp)
@@ -461,11 +512,15 @@ fun ClickableFoodItem(foodItem: Array<String>, navController: NavController) {
     }
 }
 
+/**
+ * Workout screen composable display either the favorites or browse the workout content
+ */
 @Composable
 fun WorkoutScreen(
     apiData: List<Exercise>?,
     fetchDataFromApi: (String, String, String, String) -> Unit
 ) {
+    // Mutable state variables to hold exercise information
     var exerciseName by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf("") }
@@ -478,6 +533,7 @@ fun WorkoutScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // TabRow to switch between "Browse" and "Favorites" tabs
         TabRow(
             selectedTabIndex = selectedTabIndex
         ) {
@@ -492,9 +548,11 @@ fun WorkoutScreen(
                 onClick = { selectedTabIndex = 1 }
             )
         }
-        
+
+        // Display content based on the selected tab index
         when (selectedTabIndex) {
             0 -> {
+                // Display WorkoutSearchBar for browsing exercises
                 WorkoutSearchBar(
                     exerciseName = exerciseName,
                     onExerciseNameChange = { exerciseName = it },
@@ -510,24 +568,35 @@ fun WorkoutScreen(
                     }
                 )
                 Spacer(modifier = Modifier.weight(1f))
+                // Display BrowseTabContent if search button is clicked
                 if (searchButtonClicked) {
                     BrowseTabContent(apiData)
                 }
             }
+            // Display FavoritesTabContent for favorite exercises
             1 -> FavoritesTabContent()
         }
     }
 }
 
+/**
+ * Browse tab, content displaying exercises from DisplayJsonData
+ */
 @Composable
 fun BrowseTabContent(apiData: List<Exercise>?) {
+    // Check if the API data is null or empty
     if (apiData.isNullOrEmpty()) {
+        // Display a message if no exercises were found
         Text(text = "No exercises were found.")
     } else {
+        // Display the fetched exercise data
         DisplayExerciseData(apiData)
     }
 }
 
+/**
+ * Users Favorites tab displaying workouts they have selected to add to favorites
+ */
 @Composable
 fun FavoritesTabContent() {
     val currentUserID = FirebaseAuth.getInstance().currentUser?.uid
@@ -571,6 +640,9 @@ fun FavoritesTabContent() {
     DisplayExerciseData(favoritesState)
 }
 
+/**
+ * Displays workout related Json Data.
+ */
 @Composable
 fun DisplayExerciseData(data: List<Exercise>?) {
     LazyColumn {
@@ -579,6 +651,8 @@ fun DisplayExerciseData(data: List<Exercise>?) {
                 val favoritesRef = DatabaseConnection("favorite_exercises")
                 val buttonState = remember { mutableStateOf(false) }
                 val showSheet = remember { mutableStateOf(false) }
+
+                // Extracting exercise details
                 val name = exercise.name
                 val type = exercise.type
                 val muscle = exercise.muscle
@@ -588,6 +662,7 @@ fun DisplayExerciseData(data: List<Exercise>?) {
                 var isFavorite by remember {
                     mutableStateOf(false)
                 }
+
 
                 favoritesRef?.addListenerForSingleValueEvent(object: ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -603,6 +678,7 @@ fun DisplayExerciseData(data: List<Exercise>?) {
                     }
                 })
 
+                // Conditionally display ExerciseDetailSheet based on showSheet value
                 if (showSheet.value) {
                     ExerciseDetailSheet(
                         name = name,
@@ -617,6 +693,7 @@ fun DisplayExerciseData(data: List<Exercise>?) {
                     }
                 }
 
+                // Displaying exercise details in a ListItem
                 ListItem(
                     headlineContent = {
                         Text(text = name.replaceFirstChar { it.uppercase() })
@@ -636,6 +713,7 @@ fun DisplayExerciseData(data: List<Exercise>?) {
                         }
                     }
                 )
+                // Display a message if no exercises were found
             } else {
                 Text(text = "No exercises were found.")
             }
@@ -643,13 +721,10 @@ fun DisplayExerciseData(data: List<Exercise>?) {
     }
 }
 
-@Composable
-fun ExerciseItem() {
-    LazyColumn {
 
-    }
-}
-
+/**
+ * Search bar for displaying exercises based on search parameters
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutSearchBar(
@@ -663,6 +738,7 @@ fun WorkoutSearchBar(
     onSelectedDifficultyChange: (String) -> Unit,
     onSearch: (String, String, String, String) -> Unit
 ) {
+    // Mutable state variables for dropdown and item heights
     var typeExpanded by rememberSaveable { mutableStateOf(false) }
     var muscleExpanded by rememberSaveable { mutableStateOf(false) }
     var difficultyExpanded by rememberSaveable { mutableStateOf(false) }
@@ -673,6 +749,7 @@ fun WorkoutSearchBar(
 
     val density = LocalDensity.current
 
+    // Lists for dropdown menu items
     val types = listOf(
         "cardio", "olympic_weightlifting", "plyometrics",
         "powerlifting", "strength", "stretching", "strongman"
@@ -699,6 +776,7 @@ fun WorkoutSearchBar(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // TextField for exercise name input
             TextField(
                 value = exerciseName,
                 onValueChange = { onExerciseNameChange(it) },
@@ -708,10 +786,12 @@ fun WorkoutSearchBar(
                     .padding(bottom = 8.dp)
             )
 
+            // Dropdown menus for exercise type, target muscle, and difficulty level
             ExposedDropdownMenuBox(
                 expanded = typeExpanded,
                 onExpandedChange = { typeExpanded = it },
             ) {
+                // Dropdown for exercise type selection
                 TextField(
                     value = (if (selectedType !== "") selectedType else "Exercise Type"),
                     onValueChange = {},
@@ -729,6 +809,7 @@ fun WorkoutSearchBar(
                     }
                 ) {
                     types.forEach { type ->
+                        // Dropdown menu items for exercise type
                         DropdownMenuItem(
                             text = { Text(text = type) },
                             onClick = {
@@ -804,6 +885,7 @@ fun WorkoutSearchBar(
                 }
             }
 
+            // Button to trigger search based on selected criteria
             Button(
                 onClick = {
                     onSearch(exerciseName, selectedType, selectedMuscle, selectedDifficulty)
