@@ -43,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -70,6 +71,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import retrofit2.Call
@@ -265,30 +267,39 @@ fun ProgressContent() {
     val dayOfWeek = LocalDate.now().dayOfWeek
     val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
 
-    when (dayOfWeek) {
-        DayOfWeek.MONDAY -> {
-            Text(text = "Today is $dayOfWeekString")
-        }
-        DayOfWeek.TUESDAY -> {
 
-        }
-        DayOfWeek.WEDNESDAY -> {
+    val exerciseRef = DatabaseConnection("exercises")
+    val exerciseNames = remember { mutableStateListOf<String>() }
 
-        }
-        DayOfWeek.THURSDAY -> {
 
-        }
-        DayOfWeek.FRIDAY -> {
+    LaunchedEffect(exerciseRef) {
+        exerciseRef?.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (exerciseSnapshot in snapshot.children) {
+                    val selectedDaysSnapshot = exerciseSnapshot.child("selectedDays")
+                    val type = object : GenericTypeIndicator<List<String>>() {}
+                    val selectedDays = selectedDaysSnapshot.getValue(type)
 
-        }
-        DayOfWeek.SATURDAY -> {
+                    if (selectedDays != null && dayOfWeekString in selectedDays) {
+                        // Assuming the exercise name is stored under a certain key (e.g., "name")
+                        val exerciseName = exerciseSnapshot.child("name").getValue(String::class.java)
+                        if (exerciseName != null) {
+                            exerciseNames.add(exerciseName)
+                        }
+                    }
+                }
+            }
 
-        }
-        DayOfWeek.SUNDAY -> {
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Handle any errors that may occur while fetching data
+            }
+        })
+    }
 
+    Column {
+        exerciseNames.forEach { name ->
+            Text(text = name)
         }
-
-        else -> {}
     }
 }
 
