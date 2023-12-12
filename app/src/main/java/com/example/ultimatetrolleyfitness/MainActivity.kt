@@ -75,6 +75,7 @@ import com.google.firebase.database.database
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -264,7 +265,31 @@ fun ProgressContent() {
     val dayOfWeek = LocalDate.now().dayOfWeek
     val dayOfWeekString = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
 
-    Text(text = "Today is $dayOfWeekString")
+    when (dayOfWeek) {
+        DayOfWeek.MONDAY -> {
+            Text(text = "Today is $dayOfWeekString")
+        }
+        DayOfWeek.TUESDAY -> {
+
+        }
+        DayOfWeek.WEDNESDAY -> {
+
+        }
+        DayOfWeek.THURSDAY -> {
+
+        }
+        DayOfWeek.FRIDAY -> {
+
+        }
+        DayOfWeek.SATURDAY -> {
+
+        }
+        DayOfWeek.SUNDAY -> {
+
+        }
+
+        else -> {}
+    }
 }
 
 
@@ -283,6 +308,7 @@ fun PlanContent(navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun ClickableDayCard(day: String, navController: NavController) {
